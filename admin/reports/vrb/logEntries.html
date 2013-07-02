@@ -32,9 +32,8 @@
     ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt;~[text:psx.html.admin_reports.runreports.reports_system]<!-- breadcrumb end -->~[wc:admin_navigation_css]
 	<h1>VA Log Entry Search</h1>
 	<div class="box-round">
-		
-		<h2>Search Criteria</h2>
-		
+		<h2 class="toggle expanded">Search Criteria</h2>
+		<div id="search_criteria">
 		<table>
 		    <tbody>
 		        <tr class="~[evenoddrow]">
@@ -91,6 +90,7 @@
 		</table>
 		<div class="button-row"><button id="search_button">Search</button></div>
     </div>
+    </div>
     <div id="results_container" class="box-round">
         <div id="results_loading" style="text-align: center;"></div>
         <table id="results_table">
@@ -128,6 +128,8 @@
             catch(err) {
                 console.log("No table, " + err);
             }
+            FormInputs.search.attr("disabled","disabled");
+            psToggleAll('collapse', '#content-main');
             results_loading.append('<img src="/images/vrb/ajaxLoader.gif">');
             $j.getJSON("logEntriesSearch.html",{
                 'student_number': student_number,
@@ -141,10 +143,12 @@
             }).done(function(data) {
                 results_loading.empty();
                 results_table.dataTable(data);
+                FormInputs.search.removeAttr("disabled");
             }).fail(function(error) {
                 console.log("error " + error);
                 results_loading.empty();
                 results_loading.append('An error has occured. Try Narrowing your search.');
+                FormInputs.search.removeAttr("disabled");
             });
         }
         
