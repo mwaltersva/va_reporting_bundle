@@ -25,7 +25,7 @@
 					s.id,
 					schl.high_grade
 				FROM students s
-				JOIN schools schl ON schl.school_number = NVL(to_number(ps_customfields.getstudentscf(s.id, 'va_responsibleschool')),s.schoolid)
+				JOIN schools schl ON schl.school_number = NVL(to_number(ps_customfields.getstudentscf(s.id, 'va_servingschool')),s.schoolid)
 				JOIN ps_enrollment_all enr ON enr.studentid = s.id AND enr.schoolid = s.schoolid
 				JOIN terms t ON t.schoolid = schl.school_number
 				WHERE
