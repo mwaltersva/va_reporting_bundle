@@ -1,0 +1,134 @@
+{
+    "aaData": [
+    ~[tlist_sql;
+        SELECT
+            s.student_number,
+            s.lastfirst,
+            ps_customfields.getcf('log', l.id, 'va_incident_date') incident_date,
+            l.entry_author,
+            s.dcid studentid,
+            l.dcid logid,
+            l.subject,
+            decode(
+                ps_customfields.getcf('log', l.id, 'va_sanction'),
+                '01', 'ISS for Special Ed',
+                '02', 'Short Term Suspension',
+                '03', 'Long Term Suspension',
+                '04', 'Expulsion',
+                '05', 'Special Ed Interim Placement - LEA Descision',
+                '06', 'Special Ed Interim Placement - HO Descision',
+                '07', 'Modified Expulsion to Suspension',
+                '99', 'None of the above'
+            ) sanction,
+            NVL(to_number(ps_customfields.getcf('log', l.id, 'va_days_suspended')),0) days_suspended,
+            ps_customfields.getcf('log', l.id, 'va_incident_code') incident_number,
+            regexp_replace(l.entry, chr(91) || '^a-zA-Z0-9.,!? ' || chr(93), '') entry,
+            ps_customfields.getcf('log', l.id, 'va_primary_code') offense_code1,
+            ps_customfields.getcf('log', l.id, 'va_offense_code2') offense_code2,
+            ps_customfields.getcf('log', l.id, 'va_offense_cdoe3') offense_code3,
+            NVL(ps_customfields.getcf('log', l.id, 'va_firearms'),0) firearms,
+            NVL(ps_customfields.getcf('log', l.id, 'va_non_firearms'),0) non_firearms,
+            NVL(ps_customfields.getcf('log', l.id, 'va_victims'),0) victims,
+            decode(
+                ps_customfields.getcf('log', l.id, 'va_placement'),
+                1, 'Y',
+                'N'
+            ) placement,
+            decode(
+                ps_customfields.getcf('log', l.id, 'va_expulsion'),
+                1, 'Y',
+                'N'
+            ) expulsion,
+            decode(
+                ps_customfields.getcf('log', l.id, 'va_time_code'),
+                1, 'During the Regular School day',
+                2, 'During a School Sponsored Act, outside school hours',
+                3, 'Non-School Sponsored Act, outside school hours',
+                4, 'In transit to or from school'
+            ) time_code,
+            decode(
+                ps_customfields.getcf('log', l.id, 'va_reported_law'),
+                1, 'Y',
+                'N'
+            ) reported_law,
+            decode(
+                ps_customfields.getcf('log', l.id, 'va_permanent_change_placement'),
+                1, 'Y',
+                'N'
+            ) permanent_change_placement,
+            LEAD (CASE WHEN l.id IS NOT NULL THEN chr(44) ELSE NULL END)
+            OVER ( ORDER BY l.id ASC ) comma
+        FROM students s
+        JOIN log l ON l.studentid = s.id
+        JOIN terms t ON l.entry_date BETWEEN t.firstday AND t.lastday AND t.schoolid = l.schoolid
+        WHERE
+            l.logtypeid = -100000
+            ~[if.is.a.school]AND l.schoolid = ~(curschoolid)[/if]
+            AND t.isyearrec = 1
+            AND t.yearid = ~(curyearid)
+            ~[if.~[gpv:student_number]#]AND s.student_number = ~[gpv:student_number][/if]
+            ~[if.~[gpv:incident_number]#]AND regexp_replace(ps_customfields.getcf('log', l.id, 'va_incident_code'), '^0+','') = regexp_replace(~[gpv:incident_number], '^0+','')[/if]
+            ~[if.~[gpv:log_entry_date]#]AND l.entry_date = to_date('~[gpv:log_entry_date]', 'MM/DD/YYYY')[/if]
+            ~[if.~[gpv:incident_date]#]AND to_date(ps_customfields.getcf('log', l.id, 'va_incident_date'), 'MM/DD/YYYY') = to_date('~[gpv:incident_date]', 'MM/DD/YYYY')[/if]
+            ~[if.~[gpv:days_suspended]#]AND to_number(ps_customfields.getcf('log', l.id, 'va_days_suspended')) ~[gpv:days_suspended_operator] ~[gpv:days_suspended][/if]
+            ~[if.~[gpv:offense_code]#]AND (
+                NVL(lower((ps_customfields.getcf('log', l.id, 'va_primary_code')),'empty') = lower('~[gpv:offense_code]')
+                OR NVL(lower(ps_customfields.getcf('log', l.id, 'va_offense_code2')),'empty') = lower('~[gpv:offense_code]')
+                OR NVL(lower(ps_customfields.getcf('log', l.id, 'va_offense_code3')),'empty') = lower('~[gpv:offense_code]')
+            )[/if]
+            ~[if.~[gpv:sanction_code]#]AND ps_customfields.getcf('log', l.id, 'va_sanction') = '~[gpv:sanction_code]'[/if]
+        ORDER BY l.id ASC;
+    ]
+        {
+            "student_number":~(student_number),
+            "student_name":"~(lastfirst)",
+            "incident_date":"~(incident_date)",
+            "entry_author":"~(entry_author)",
+            "subject":"<a target=\"_blank\" href=\"/admin/students/home.html?frn=001~(studentid)&ac=suv;lsp=/admin/students/customlogentry.html?frn=008~(logid)\">~(subject;t;if.blank.then=None Entered)</a>",
+            "sanction_code":"~(sanction)",
+            "days_suspended":~(days_suspended),
+            "incident_number":"~(incident_number)",
+            "entry":"~(entry)",
+            "offense_code1":"~(offense_code1)",
+            "offense_code2":"~(offense_code2)",
+            "offense_code3":"~(offense_code3)",
+            "firearms":~(firearms),
+            "non_firearms":~(non_firearms),
+            "victims":~(victims),
+            "placement":"~(placement)",
+            "expulsion":"~(expulsion)",
+            "time_code":"~(time_code)",
+            "reported_law":"~(reported_law)",
+            "permanent_change_placement":"~(permanent_change_placement)"
+        }~(comma)
+    [/tlist_sql]
+    ],
+    
+    "aoColumns": [
+        {"mDataProp":null,"sTitle":"Detail","sClass":"control center","sDefaultContent":"<img src=\"/scripts/vrb/DataTables/examples/examples_support/details_open.png\">"},
+        {"mDataProp":"student_number","sTitle":"Student Number"},
+        {"mDataProp":"student_name","sTitle":"Last, First"},
+        {"mDataProp":"incident_date","sTitle":"Incident Date"},
+        {"mDataProp":"entry_author","sTitle":"Author"},
+        {"mDataProp":"subject","sTitle":"Subject"}
+    ],
+    "sDom": "T<\"H\"fr>t<\"F\"ip>",
+    "oTableTools": {
+        "sSwfPath": "/scripts/vrb/DataTables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf",
+        "aButtons":["copy","csv","xls","pdf","print",
+            {
+                "sExtends":"text",
+                "sButtonText":"Expand Detail",
+                "sToolTip":"ExpandDetail"
+            },
+            {
+                "sExtends":"text",
+                "sButtonText":"Collapse Detail",
+                "sToolTip":"CollapseDetail"
+                
+            }]
+    },
+    "bJQueryUI": true,
+    "bPaginate": false,
+    "bFilter": false    
+}

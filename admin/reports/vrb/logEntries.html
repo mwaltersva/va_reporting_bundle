@@ -1,0 +1,251 @@
+<html>
+<head>
+
+<!-- Required style sheets: screen.css, and print.css --> 
+	<link href="/images/css/screen.css" rel="stylesheet" media="screen"> 
+	<link href="/images/css/print.css" rel="stylesheet" media="print">
+	<link href="/scripts/vrb/DataTables/media/css/jquery.dataTables.css" rel="stylesheet">
+	<link href="/scripts/vrb/DataTables/extras/TableTools/media/css/TableTools_JUI.css" rel="stylesheet">
+	
+	<title>VA Discipline Log Search</title>
+	~[wc:commonscripts]
+    <script src="/scripts/vrb/DataTables/media/js/jquery.dataTables.min.js"></script>
+    <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/TableTools.min.js"></script>
+    <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/ZeroClipboard.js"></script>
+    <style type="text/css">
+        div.innerDetails { display: none }
+        table.innerDetails {
+            padding: 5px;
+            padding-left: 50px;
+            border: 1px solid;
+            text-align: left;
+            background-color: #F1F1F1;
+        }
+        td.title {
+            width: 20%;
+            font-weight: bold;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt;~[text:psx.html.admin_reports.runreports.reports_system]<!-- breadcrumb end -->~[wc:admin_navigation_css]
+	<h1>VA Log Entry Search</h1>
+	<div class="box-round">
+		
+		<h2>Search Criteria</h2>
+		
+		<table>
+		    <tbody>
+		        <tr class="~[evenoddrow]">
+    		        <td class="bold">Student Number</td>
+    		        <td><input type="text" id="student_number"></td>
+    		    </tr>
+    		    <tr class="~[evenoddrow]">
+    		        <td class="bold">Incident Number</td>
+    		        <td><input type="text" id="incident_number"></td>
+    		    </tr>
+    		    <tr class="~[evenoddrow]">
+    		        <td class="bold">Log Entry Date</td>
+    		        <td><input type="text" class="psDateWidget" id="log_entry_date"></td>
+    		    </tr>
+    		    <tr class="~[evenoddrow]">
+    		        <td class="bold">Incident Date</td>
+    		        <td><input type="text" class="psDateWidget" id="incident_date"></td>
+    		    </tr>
+    		    <tr class="~[evenoddrow]">
+    		        <td class="bold">Days Suspended</td>
+    		        <td>
+    		            <select id="days_suspended_operator">
+    		                <option value="=">=</option>
+    		                <option value="&lt;">&lt;</option>
+    		                <option value="&lt;=">&lt;=</option>
+    		                <option value="&gt;">&gt;</option>
+    		                <option value="&gt;=">&gt;=</option>
+    		                <option value="&lt;&gt;">&lt;&gt;</option>
+    		            </select>
+    		            <input type="number" id="days_suspended">
+    		        </td>
+    		    </tr>
+    		    <tr class="~[evenoddrow]">
+    		        <td class="bold">Sanction Code</td>
+    		        <td>
+    		            <select id="sanction_code">
+    		                <option value="">Choose a Sanction...</option>
+    		                <option value="01">ISS For Special Ed Students</option>
+    		                <option value="02">Short-Term Suspension</option>
+    		                <option value="03">Long-Term Suspension</option>
+    		                <option value="04">Expulsion</option>
+    		                <option value="05">Special Ed interim placement - LEA Descision</option>
+    		                <option value="06">Special Ed interim placement - HO Descision</option>
+    		                <option value="07">Modified Expulsion to Suspension</option>
+    		                <option value="99">None of the Above</option>
+    		            </select>
+    		        </td>
+    		    </tr>
+    		    <tr class="~[evenoddrow]">
+    		        <td class="bold">Offense Code</td>
+    		        <td><input type="text" id="offense_code"></td>
+    		    </tr>
+		    </tbody>
+		</table>
+		<div class="button-row"><button id="search_button">Search</button></div>
+    </div>
+    <div id="results_container" class="box-round">
+        <div id="results_loading" style="text-align: center;"></div>
+        <table id="results_table">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript">
+        var FormInputs = {
+            student_number: $j('#student_number'),
+            incident_number: $j('#incident_number'),
+            log_entry_date: $j('#log_entry_date'),
+            incident_date: $j('#incident_date'),
+            days_suspended_operator: $j('#days_suspended_operator'),
+            days_suspended: $j('#days_suspended'),
+            sanction_code: $j('#sanction_code'),
+            offense_code: $j('#offense_code'),
+            search: $j('#search_button')
+        }
+        
+        var results_container = $j('#results_container');
+        var results_loading = $j('#results_loading');
+        var results_table = $j('#results_table');
+        var anOpen = [];
+        
+        function DoSearch(student_number, incident_number, log_entry_date, incident_date, days_suspended_operator, days_suspended, sanction_code, offense_code) {
+            try {
+                results_table.fnDestroy();
+                results_loading.empty();
+                $j("#results_table tbody").empty();
+                $j("#results_table thead").empty();
+            } 
+            catch(err) {
+                console.log("No table, " + err);
+            }
+            results_loading.append('<img src="/images/vrb/ajaxLoader.gif">');
+            $j.getJSON("logEntriesSearch.html",{
+                'student_number': student_number,
+                'incident_number': incident_number,
+                'log_entry_date': log_entry_date,
+                'incident_date': incident_date,
+                'days_suspended_operator': days_suspended_operator,
+                'days_suspended': days_suspended,
+                'sanction_code': sanction_code,
+                'offense_code': offense_code
+            }).done(function(data) {
+                results_loading.empty();
+                results_table.dataTable(data);
+                /*results_table.dataTable({
+                    "sDom": 'T<"H"fr>t<"F"ip>',
+                    "oTableTools": {
+                        "sSwfPath": '/scripts/vrb/DataTables-1.9.4/extras/TableTools/media/swf/copy_csv_xls_pdf.swf'
+                    },
+                    "bJQueryUI": true,
+                    "bPaginate": false,
+                    "bFilter": false
+                });*/
+            }).fail(function(error) {
+                console.log("error " + error);
+                results_loading.empty();
+                results_loading.append('An error has occured. Try Narrowing your search.');
+            });
+        }
+        
+        $j(FormInputs.search.on("click", function() {
+            DoSearch(
+                FormInputs.student_number.val(),
+                FormInputs.incident_number.val(),
+                FormInputs.log_entry_date.val(),
+                FormInputs.incident_date.val(),
+                FormInputs.days_suspended_operator.val(),
+                FormInputs.days_suspended.val(),
+                FormInputs.sanction_code.val(),
+                FormInputs.offense_code.val()
+            );
+        }));
+        
+        $j('#results_table td.control').live('click',function() {
+            var nTr = this.parentNode;
+            var i = $j.inArray(nTr, anOpen);
+            
+            if (i === -1) {
+                $j('img', this).attr('src',"/scripts/vrb/DataTables/examples/examples_support/details_close.png");
+                var nDetailsRow = results_table.fnOpen(nTr, fnFormatDetails(results_table, nTr), 'details');
+                $j('div.innerDetails', nDetailsRow).slideDown();
+                anOpen.push(nTr);
+            } else {
+                $j('img', this).attr('src',"/scripts/vrb/DataTables/examples/examples_support/details_open.png");
+                $j('div.innerDetails', $j(nTr).next()[0]).slideUp(function() {
+                    results_table.fnClose(nTr);
+                    anOpen.splice(i,1);
+                });
+            }
+        });
+        
+        function fnFormatDetails(results_table, nTr) {
+            var oData = results_table.fnGetData(nTr);
+            var sOut = 
+                '<div class="innerDetails">'+
+                    '<table class="innerDetails">'+
+                        '<tr><td class="innerDetails title">Sanction Code:</td><td class="innerDetails">'+oData.sanction_code+'</td></tr>'+
+                        '<tr><td class="innerDetails title">Days Suspended:</td><td class="innerDetails">'+oData.days_suspended+'</td></tr>'+
+                        '<tr><td class="innerDetails title">Incident Number:</td><td class="innerDetails">'+oData.incident_number+'</td></tr>'+
+                        '<tr><td class="innerDetails title">Detail</td><td class="innerDetails">'+oData.entry+'</td></tr>'+
+                        '<tr><td class="innerDetails title">Offense Codes</td><td class="innerDetails">'+oData.offense_code1+' '+oData.offense_code2+' '+oData.offense_code3+'</td></tr>'+
+                        '<tr><td class="innerDetails title">Firearms Confiscated</td><td class="innerDetails">'+oData.firearms+'</td></tr>'+
+                        '<tr><td class="innerDetails title">Non Firearms Confiscated</td><td class="innerDetails">'+oData.non_firearms+'</td></tr>'+
+                        '<tr><td class="innerDetails title">Victims</td><td class="innerDetails">'+oData.victims+'</td><tr>'+
+                        '<tr><td class="innerDetails title">Alt. Placement</td><td class="innerDetails">'+oData.placement+'</td></tr>'+
+                        '<tr><td class="innerDetails title">Perm. Expulsion</td><td class="innerDetails">'+oData.expulsion+'</td></tr>'+
+                        '<tr><td class="innerDetails Title">Time</td><td class="innerDetails">'+oData.time_code+'</td></tr>'+
+                        '<tr><td class="innerDetails Title">Reported to Law</td><td class="innerDetails">'+oData.reported_law+'</td></tr>'+
+                        '<tr><td class="innerDetails Title">Permanent Change in Placement</td><td class="innerDetails">'+oData.permanent_change_placement+'</td></tr>'+
+                    '</table>'+
+                '</div>';
+            return sOut;
+        }
+        
+        function toggle_collapse() {
+            $j('tbody tr', results_table).each(function() {
+                var nTr = this;
+                var i = $j.inArray(nTr, anOpen);
+                
+                if (results_table.fnIsOpen(this)) {
+                    $j('img', this).attr('src',"/scripts/vrb/DataTables/examples/examples_support/details_open.png");
+                    $j('div.innerDetails', $j(nTr).next()[0]).slideUp(function() {
+                        results_table.fnClose(nTr);
+                    });
+                    if (i > -1) anOpen.splice(i,1);
+                }
+            });
+        }
+        
+        function toggle_expand() {
+            $j('tbody tr', results_table).each(function() {
+                var nTr = this;
+                var i = $j.inArray(nTr, anOpen);
+                
+                if (!results_table.fnIsOpen(this)) {
+                    $j('img', this).attr('src',"/scripts/vrb/DataTables/examples/examples_support/details_close.png");
+                    var nDetailsRow = results_table.fnOpen(nTr, fnFormatDetails(results_table, nTr), 'details');
+                    $j('div.innerDetails', nDetailsRow).slideDown();
+                    if (i === -1) anOpen.push(nTr);
+                }
+            });
+        }
+        
+        $j('a[title="ExpandDetail"]').live("click",function() {
+            toggle_expand();
+        });
+        $j('a[title="CollapseDetail"]').live("click",function() {
+            toggle_collapse();
+        });
+    </script>
+</body>
+</html>
