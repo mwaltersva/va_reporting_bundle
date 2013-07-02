@@ -11,7 +11,7 @@
 
 <body>
 
-~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt;~[text:psx.html.admin_reports.runreports.reports_system]<!-- breadcrumb end -->~[wc:admin_navigation_css]
+~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; VRB <!-- breadcrumb end -->~[wc:admin_navigation_css]
 
 <h1>Virginia Reporting Bundle</h1>~[SetPostValue:repType=vrb]
 ~[x:insertfile;/admin/reports/reporttabs.html]
@@ -43,9 +43,17 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
+            <tr class="~[evenoddrow]">
                 <td class="bold"><a href="truancyCounts.html">Truancy Counts</a></td>
                 <td>School level summary of truancy by grade.</td>
+            </tr>
+            <tr class="~[evenoddrow]">
+                <td class="bold"><a href="disabilityTypeCounts.html">Count of Disability Types</a></td>
+                <td>Students with Disabilities by Condition Type.</td>
+            </tr>
+            <tr class="~[evenoddrow]">
+                <td class="bold"><a href="eslCodeCounts.html">Count of LEP Students by ESL codes</a></td>
+                <td>LEP Students by ESL Status Code</td>
             </tr>
         </tbody>
     </table>

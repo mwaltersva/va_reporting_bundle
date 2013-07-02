@@ -7,7 +7,7 @@
     <link href="/scripts/vrb/DataTables/media/css/jquery.dataTables.css" rel="stylesheet">
     <link href="/scripts/vrb/DataTables/extras/TableTools/media/css/TableTools_JUI.css" rel="stylesheet">
     
-    <title>Disability Type Counts</title>
+    <title>ESL Code Counts</title>
     ~[wc:commonscripts]
     <script src="/scripts/vrb/DataTables/media/js/jquery.dataTables.min.js"></script>
     <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/TableTools.min.js"></script>
@@ -29,10 +29,10 @@
     </style>
 </head>
 <body>
-    ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; Student Disability Counts <!-- breadcrumb end -->~[wc:admin_navigation_css]
-    <h1>Students with Disabilities by Condition Type</h1>
+    ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; Student ESL Code Counts <!-- breadcrumb end -->~[wc:admin_navigation_css]
+    <h1>LEP Students by ESL Status Code</h1>
     <p>
-        Counts students with a primary disability who were active on the entered snapshot date.
+        Counts students with an ESL services code who were active on the entered snapshot date.
         If no snapshot date is entered, the current date will be used. Usual snapshot dates
         include:
     </p>
@@ -88,8 +88,8 @@
             }
             psToggleAll('collapse', '#content-main');
             results_loading.append('<img src="/images/vrb/ajaxLoader.gif">');
-            $j.getJSON("disabilityTypeCounts.json",{
-                snapShotDate: snapshot_date
+            $j.getJSON("eslCodeCounts.json",{
+                snapshot_date: snapshot_date
             }).done(function(data) {
                 results_loading.empty();
                 results_table.dataTable(data);
