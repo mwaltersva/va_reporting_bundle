@@ -141,15 +141,6 @@
             }).done(function(data) {
                 results_loading.empty();
                 results_table.dataTable(data);
-                /*results_table.dataTable({
-                    "sDom": 'T<"H"fr>t<"F"ip>',
-                    "oTableTools": {
-                        "sSwfPath": '/scripts/vrb/DataTables-1.9.4/extras/TableTools/media/swf/copy_csv_xls_pdf.swf'
-                    },
-                    "bJQueryUI": true,
-                    "bPaginate": false,
-                    "bFilter": false
-                });*/
             }).fail(function(error) {
                 console.log("error " + error);
                 results_loading.empty();
