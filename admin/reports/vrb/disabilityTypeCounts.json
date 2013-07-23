@@ -48,6 +48,7 @@
 					WHERE
 						ps_customfields.getstudentscf(s.id, 'va_primary_dis_code') IS NOT NULL
 						AND to_number(ps_customfields.getstudentscf(s.id, 'va_primary_dis_code')) <> 15
+						AND ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL
 						~[if.~[gpv:snapShotDate]#]AND to_date('~[gpv:snapShotDate]','MM/DD/YYYY') BETWEEN s.entrydate AND s.exitdate[else]AND current_date BETWEEN s.entrydate AND s.exitdate[/if]
 						~[if.is.a.school]AND s.schoolid = ~(curschoolid)[/if]
 					UNION ALL
@@ -59,6 +60,7 @@
 					WHERE
 						ps_customfields.getcf('reenrollments', re.id, 'va_primary_dis_code') IS NOT NULL
 						AND to_number(ps_customfields.getcf('reenrollments', re.id, 'va_primary_dis_code')) <> 15
+						AND ps_customfields.getcf('reenrollments', re.id, 'va_np_fte') IS NULL
 						~[if.~[gpv:snapShotDate]#]AND to_date('~[gpv:snapShotDate]','MM/DD/YYYY') BETWEEN re.entrydate AND re.exitdate[else]AND current_date BETWEEN s.entrydate AND s.exitdate[/if]
 						~[if.is.a.school]AND re.schoolid = ~(curschoolid)[/if]
 				) enr
