@@ -1,0 +1,244 @@
+{
+	"aaData": [
+	~[tlist_sql;
+		SELECT
+			msc.teacher_type,
+			t.lastfirst,
+			c.course_number,
+			sec.section_number,
+			c.course_name,
+			decode(msc.teacher_role_code,
+				0, 'Virtual Course',
+				1, 'Teacher of Record',
+				2, 'OT Whole Class, Most Time',
+				3, 'OT Whole Class, Some Time',
+				4, 'OT Few Students',
+				5, 'LTS',
+				6, 'Contracted Private',
+				7, 'PPSP',
+				8, 'Admin',
+				9, 'Regular Sub'
+			) teacher_role_code,
+			decode(msc.defined_class_type,
+				'0112', 'Gifted Ed',
+				'0127', 'Alt-Ed',
+				'1105', 'Reading Specialist',
+				'3100', 'Math Specialist',
+				'5705', 'ESL',
+				'5710', 'ESL (Secondary)',
+				'7800', 'Early Child SpEd, Age 3-5',
+				'7805', 'Autism',
+				'7810', 'Multiple Disabilities',
+				'7815', 'Other Health Imp.',
+				'7822', 'Int. Disability',
+				'7848', 'Hearing Impairment',
+				'7850', 'Visual Impairment',
+				'7855', 'Deaf/Blind',
+				'7857', 'ED. ID',
+				'7860', 'SLD. ID',
+				'7863', 'ED',
+				'7865', 'SLD',
+				'7868', 'SLD. ED',
+				'7871', 'LD, ED, ID',
+				'7873', 'OI',
+				'7874', 'TBI',
+				'7875', 'SLI',
+				'7880', 'SD',
+				'7882', 'Non-Cat K-2 Dev Delay Age 5-8',
+				'7884', 'Dev Delay'
+			) defined_class_type,
+			decode(msc.highly_qualified_flag,
+				1, 'Yes',
+				'No'
+			) HQ_flag,
+			decode(msc.flex_criteria_flag,
+				1, 'Yes',
+				'No'
+			) flex_criteria_flag,
+			sced_subject,
+			sced_course_identifier,
+			sced_course_level,
+			sced_available_credit,
+			sced_sequence,
+			va_course_code,
+			LISTAGG(s.lastfirst, chr(59)) WITHIN GROUP (ORDER BY s.lastfirst) "Studs",
+			LEAD (CASE WHEN msc.teacher_type IS NOT NULL THEN chr(44) ELSE NULL END)
+			OVER (ORDER BY 	t.lastfirst, sec.section_number	ASC) comma
+		FROM (
+			SELECT
+				'lead' teacher_type,
+				sec.id sectionid,
+				t.id teacherid,
+				s.id studentid,
+				ps_customfields.getsectionscf(sec.id, 'va_teacher_role_cd') teacher_role_code,
+				ps_customfields.getsectionscf(sec.id, 'va_defined_class_type') defined_class_type,
+				ps_customfields.getsectionscf(sec.id, 'va_highly_qual_flag') highly_qualified_flag,
+				ps_customfields.getsectionscf(sec.id, 'va_flex_criteria_flag') flex_criteria_flag,
+				ps_customfields.getcoursescf(c.id, 'va_sced_subject_area') sced_subject,
+				ps_customfields.getcoursescf(c.id, 'va_sced_crs_identifier') sced_course_identifier,
+				ps_customfields.getcoursescf(c.id, 'va_sced_crs_level') sced_course_level,
+				ps_customfields.getcoursescf(c.id, 'va_sced_avail_credit') sced_available_credit,
+				ps_customfields.getcoursescf(c.id, 'va_sced_sequence') sced_sequence,
+				ps_customfields.getcoursescf(c.id, 'va_course_code') va_course_code
+			FROM sections sec
+			JOIN cc ON abs(cc.sectionid) = sec.id
+			JOIN students s ON s.id = cc.studentid
+			JOIN teachers t ON t.id = sec.teacher
+			JOIN terms ON terms.id = sec.termid AND terms.schoolid = sec.schoolid
+			JOIN courses c ON c.course_number = sec.course_number
+			WHERE
+				terms.yearid = ~(curyearid)
+				~[if.is.a.school]AND sec.schoolid = ~(curschoolid)[/if]
+				AND cc.dateleft-cc.dateenrolled >= 20
+			UNION ALL
+			SELECT
+				'addtl' teacher_type,
+				sec.id sectionid,
+				t.id teacherid,
+				s.id studentid,
+				ps_customfields.getcf('va_msc', unique_id, 'va_teacher_role_cd') teacher_role_code,
+				ps_customfields.getcf('va_msc', unique_id, 'va_defined_class_type') defined_class_type,
+				ps_customfields.getcf('va_msc', unique_id, 'va_highly_qual_flag') highly_qualified_flag,
+				ps_customfields.getcf('va_msc', unique_id, 'va_flex_criteria_flag') flex_criteria_flag,
+				ps_customfields.getcoursescf(c.id, 'va_sced_subject_area') sced_subject,
+				ps_customfields.getcoursescf(c.id, 'va_sced_crs_identifier') sced_course_identifier,
+				ps_customfields.getcoursescf(c.id, 'va_sced_crs_level') sced_course_level,
+				ps_customfields.getcoursescf(c.id, 'va_sced_avail_credit') sced_available_credit,
+				ps_customfields.getcoursescf(c.id, 'va_sced_sequence') sced_sequence,
+				ps_customfields.getcoursescf(c.id, 'va_course_code') va_course_code
+			FROM sections sec
+			JOIN virtualtablesdata2 vtd ON vtd.user_defined_text = sec.id
+			JOIN teachers t ON t.id = vtd.foreignkey
+			JOIN students s ON ',' || ps_customfields.getcf('va_msc', unique_id, 'va_kidstaught') LIKE '%,' || s.id || ',%'
+			JOIN terms ON terms.id = sec.termid AND terms.schoolid = sec.schoolid
+			JOIN courses c ON c.course_number = sec.course_number
+			WHERE
+				terms.yearid = ~(curyearid)
+				~[if.is.a.school]AND sec.schoolid = ~(curschoolid)[/if]
+		) msc
+		JOIN teachers t ON t.id = msc.teacherid
+		JOIN students s ON s.id = msc.studentid
+		JOIN sections sec ON sec.id = msc.sectionid
+		JOIN courses c ON c.course_number = sec.course_number
+		JOIN terms ON terms.id = sec.termid AND terms.schoolid = sec.schoolid
+		WHERE
+		terms.yearid = ~(curyearid)
+			AND ps_customfields.getteacherscf(t.id, 'va_exclude_from_msc') IS NULL
+			AND ps_customfields.getsectionscf(sec.id, 'va_exclude_from_msc') IS NULL
+			AND ps_customfields.getcoursescf(c.id, 'va_exclude_from_msc') IS NULL
+		GROUP BY 
+			msc.teacher_type,
+			t.lastfirst,
+			c.course_number,
+			sec.section_number,
+			c.course_name,
+			decode(msc.teacher_role_code,
+				0, 'Virtual Course',
+				1, 'Teacher of Record',
+				2, 'OT Whole Class, Most Time',
+				3, 'OT Whole Class, Some Time',
+				4, 'OT Few Students',
+				5, 'LTS',
+				6, 'Contracted Private',
+				7, 'PPSP',
+				8, 'Admin',
+				9, 'Regular Sub'
+			),
+			decode(msc.defined_class_type,
+				'0112', 'Gifted Ed',
+				'0127', 'Alt-Ed',
+				'1105', 'Reading Specialist',
+				'3100', 'Math Specialist',
+				'5705', 'ESL',
+				'5710', 'ESL (Secondary)',
+				'7800', 'Early Child SpEd, Age 3-5',
+				'7805', 'Autism',
+				'7810', 'Multiple Disabilities',
+				'7815', 'Other Health Imp.',
+				'7822', 'Int. Disability',
+				'7848', 'Hearing Impairment',
+				'7850', 'Visual Impairment',
+				'7855', 'Deaf/Blind',
+				'7857', 'ED. ID',
+				'7860', 'SLD. ID',
+				'7863', 'ED',
+				'7865', 'SLD',
+				'7868', 'SLD. ED',
+				'7871', 'LD, ED, ID',
+				'7873', 'OI',
+				'7874', 'TBI',
+				'7875', 'SLI',
+				'7880', 'SD',
+				'7882', 'Non-Cat K-2 Dev Delay Age 5-8',
+				'7884', 'Dev Delay'
+			),
+			decode(msc.highly_qualified_flag,
+				1, 'Yes',
+				'No'
+			),
+			decode(msc.flex_criteria_flag,
+				1, 'Yes',
+				'No'
+			),
+			sced_subject,
+			sced_course_identifier,
+			sced_course_level,
+			sced_available_credit,
+			sced_sequence,
+			va_course_code
+		ORDER BY
+			t.lastfirst,
+			sec.section_number
+			ASC;
+		]{
+			"teacher_type":"~(teacher_type)",
+			"teacher_name":"~(lastfirst)",
+			"course_number":"~(course_number)",
+			"section_number":"~(section_number)",
+			"course_name":"~(course_name)",
+			"teacher_role_code":"~(teacher_role_code)",
+			"defined_class_type":"~(defined_class_type)",
+			"HQ_flag":"~(HQ_flag)",
+			"flex_criteria_flag":"~(flex_criteria_flag)",
+			"subject_area":"~(sced_subject_area)",
+			"course_identifier":"~(sced_course_identifier)",
+			"course_level":"~(sced_course_level)",
+			"available_credit":"~(sced_available_credit)",
+			"sequence":"~(sced_sequence)",
+			"course_code":"~(course_code)",
+			"students":"~(students)"
+		}~(comma)[/tlist_sql]
+	],
+	
+	"aoColumns": [
+		{"mDataProp":null,"sTitle":"Detail","sClass":"control center","sDefaultContent":"<img src=\"/scripts/vrb/DataTables/examples/examples_support/details_open.png\">"},
+		{"mDataProp":"teacher_type","sTitle":"Teacher Type"},
+		{"mDataProp":"teacher_name","sTitle":"Teacher Name"},
+		{"mDataProp":"course_number","sTitle":"Course Number"},
+		{"mDataProp":"section_number","sTitle":"Section Number"},
+		{"mDataProp":"course_name","sTitle":"Course Name"},
+		{"mDataProp":"teacher_role_code","sTitle":"Teacher Role Code"},
+		{"mDataProp":"defined_class_type","sTitle":"Defined Class Type"},
+		{"mDataProp":"HQ_flag","sTitle":"HQ Flag"},
+		{"mDataProp":"flex_criteria_flag","sTitle":"Flex Criteria Flag"}
+	],
+    "sDom": "T<\"H\"fr>t<\"F\"ip>",
+    "oTableTools": {
+        "sSwfPath": "/scripts/vrb/DataTables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf",
+        "aButtons":["copy","csv","xls","pdf","print",
+            {
+                "sExtends":"text",
+                "sButtonText":"Expand Detail",
+                "sToolTip":"ExpandDetail"
+            },
+            {
+                "sExtends":"text",
+                "sButtonText":"Collapse Detail",
+                "sToolTip":"CollapseDetail"
+                
+            }]
+    },
+    "bJQueryUI": true,
+    "bPaginate": false,
+    "bFilter": false
+}

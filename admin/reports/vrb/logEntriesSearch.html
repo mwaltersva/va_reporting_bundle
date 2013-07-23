@@ -72,7 +72,7 @@
             ~[if.~[gpv:incident_date]#]AND to_date(ps_customfields.getcf('log', l.id, 'va_incident_date'), 'MM/DD/YYYY') = to_date('~[gpv:incident_date]', 'MM/DD/YYYY')[/if]
             ~[if.~[gpv:days_suspended]#]AND to_number(ps_customfields.getcf('log', l.id, 'va_days_suspended')) ~[gpv:days_suspended_operator] ~[gpv:days_suspended][/if]
             ~[if.~[gpv:offense_code]#]AND (
-                NVL(lower((ps_customfields.getcf('log', l.id, 'va_primary_code')),'empty') = lower('~[gpv:offense_code]')
+                NVL(lower(ps_customfields.getcf('log', l.id, 'va_primary_code')),'empty') = lower('~[gpv:offense_code]')
                 OR NVL(lower(ps_customfields.getcf('log', l.id, 'va_offense_code2')),'empty') = lower('~[gpv:offense_code]')
                 OR NVL(lower(ps_customfields.getcf('log', l.id, 'va_offense_code3')),'empty') = lower('~[gpv:offense_code]')
             )[/if]
