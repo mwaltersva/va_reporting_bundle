@@ -31,20 +31,23 @@
 <body>
     ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; Student Disability Counts <!-- breadcrumb end -->~[wc:admin_navigation_css]
     <h1>Students with Disabilities by Condition Type</h1>
-    <p>
-        Counts students with a primary disability who were active on the entered snapshot date.
-        If no snapshot date is entered, the current date will be used. Usual snapshot dates
-        include:
-    </p>
-    <ul>
-        <li>October 1st - Fall SRC</li>
-        <li>December 1st - Dec 1 Special Ed child count</li>
-        <li>March 31st - Spring SRC</li>
-        <li>Last day of School - EOY SRC</li>
-    </ul>
+    <div class="hide" id="help">
+        <p>
+            Counts students with a primary disability who were active on the entered snapshot date.
+            If no snapshot date is entered, the current date will be used. Usual snapshot dates
+            include:
+        </p>
+        <ul>
+            <li>October 1st - Fall SRC</li>
+            <li>December 1st - Dec 1 Special Ed child count</li>
+            <li>March 31st - Spring SRC</li>
+            <li>Last day of School - EOY SRC</li>
+        </ul>
+    </div>
     <div id="search_container" class="box-round">
         <h2 class="toggle expanded">Search Criteria</h2>
         <div>
+        <a class="dialogDivM" title="Help" href="#help">Help</a>
         <table id="search_table">
             <tr>
                 <td class="bold">Snapshot Date:&nbsp;</td>
