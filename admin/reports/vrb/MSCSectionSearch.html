@@ -1,0 +1,251 @@
+<html>
+<head>
+
+<!-- Required style sheets: screen.css, and print.css --> 
+    <link href="/images/css/screen.css" rel="stylesheet" media="screen"> 
+    <link href="/images/css/print.css" rel="stylesheet" media="print">
+    <link href="/scripts/vrb/DataTables/media/css/jquery.dataTables.css" rel="stylesheet">
+    <link href="/scripts/vrb/DataTables/extras/TableTools/media/css/TableTools_JUI.css" rel="stylesheet">
+    
+    <title>MSC Sections Search</title>
+    ~[wc:commonscripts]
+    <script src="/scripts/vrb/DataTables/media/js/jquery.dataTables.min.js"></script>
+    <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/TableTools.min.js"></script>
+    <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/ZeroClipboard.js"></script>
+    <style type="text/css">
+        div.innerDetails { display: none }
+        table.innerDetails {
+            padding: 5px;
+            padding-left: 50px;
+            border: 1px solid;
+            text-align: left;
+            background-color: #F1F1F1;
+        }
+        td.title {
+            width: 20%;
+            font-weight: bold;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; MSC Sections Search <!-- breadcrumb end -->~[wc:admin_navigation_css]
+    <h1>MSC Section Search</h1>
+    <div class="box-round">
+        <h2 class="toggle expanded">Search Criteria</h2>
+        <div id="search_criteria">
+        <a class="dialogDivM" href="#help" title="Help">Help</a>
+        <div id="help" class="hide">
+            <h3>MSC Section Search</h3>
+            <p>Allows users to search sections by commonly used terms from the DOE edit checks</p>
+            <ul>
+                <li><b>Section ID</b> - The internal DB section ID</li>
+                <li><b>Course Number</b> - Type course number or course name and click a course name from the list that appears.</li>
+                <li><b>Section Number</b> - Enter a section number</li>
+                <li><b>Teacher</b> - Type a teacher name, internal DB ID, teacher number, or license number. Click a name from the list that appears.</li> 
+            </ul>
+        </div> 
+            <table>
+                <thead>
+                </thead>
+                <tbody>
+                    <tr class="~[evenoddrow]">
+                        <td class="bold">Section ID: </td>
+                        <td><input type="number" id="section_id"></td>
+                    </tr>
+                    <tr class="~[evenoddrow]">
+                        <td class="bold">Course Number: </td>
+                        <td><input type="text" id="course_number"</td>
+                    </tr>
+                    <tr class="~[evenoddrow]">
+                        <td class="bold">Section Number: </td>
+                        <td><input type="text" id="section_number"></td>
+                    </tr>
+                    <tr class="~[evenoddrow]">
+                        <td class="bold">Teacher: </td>
+                        <td><input type="text" id="teacher_id"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="button-row"><button id="search_button">Search</button></div>
+        </div>
+    </div>
+    
+    <div id="results_container" class="box-round">
+        <div id="results_loading" style="text-align: center;"></div>
+        <table id="results_table">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript">
+        var FormInputs = {
+            section_id: $j('#section_id'),
+            course_number: $j('#course_number'),
+            course_name: $j('#course_name'),
+            section_number: $j('#section_number'),
+            teacher_id: $j('#teacher_id'),
+            search: $j('#search_button')
+        }
+        
+        var results_container = $j('#results_container');
+        var results_loading = $j('#results_loading');
+        var results_table = $j('#results_table');
+        var anOpen = [];
+        
+        function DoSearch(section_id, course_number, course_name, section_number, teacher_id) {
+            try {
+                results_table.fnDestroy();
+                results_loading.empty();
+                $j("#results_table tbody").empty();
+                $j("#results_table thead").empty();
+            } 
+            catch(err) {
+                console.log("No table, " + err);
+            }
+            FormInputs.search.attr("disabled","disabled");
+            psToggleAll('collapse', '#content-main');
+            results_loading.append('<img src="/images/vrb/ajaxLoader.gif">');
+            $j.getJSON("MSCSectionSearch.json",{
+                'section_id':section_id,
+                'course_number':course_number,
+                'course_name':course_name,
+                'section_number':section_number,
+                'teacher_id':teacher_id
+            }).done(function(data) {
+                results_loading.empty();
+                results_table.dataTable(data);
+                FormInputs.search.removeAttr("disabled");
+            }).fail(function(error) {
+                console.log("error " + error);
+                results_loading.empty();
+                results_loading.append('An error has occured. Try Narrowing your search.');
+                FormInputs.search.removeAttr("disabled");
+            });
+        }
+        
+        function fnFormatDetails(results_table, nTr) {
+            var oData = results_table.fnGetData(nTr);
+            var students = oData.students.split(";");
+            var student_rows = "";
+            var i = 1;
+            $j.each(students,function(index, value) {
+                if (i % 2 === 0) {
+                    student_rows += "<td>" + value + "</td></tr>";
+                    i++;
+                }
+                else {
+                    student_rows += "<tr><td>" + value + "</td>";
+                    i++;
+                }
+            });
+            if (i % 2 === 0) {
+                student_rows += "<td></td></tr>"
+            }
+            sOut = '<div class="innerDetails">'+
+                    '<table class="innerDetails">'+
+                        '<tr><td colspan="2"><strong>SCED Subject:</strong> '+oData.subject_area+'</td></tr>'+
+                        '<tr><td colspan="2"><strong>SCED Course ID:</strong> '+oData.course_identifier+'</td></tr>'+
+                        '<tr><td colspan="2"><strong>SCED Course Level:</strong> '+oData.course_level+'</td></tr>'+
+                        '<tr><td colspan="2"><strong>SCED Available Credit:</strong> '+oData.available_credit+'</td></tr>'+
+                        '<tr><td colspan="2"><strong>SCED Sequence:</strong> '+oData.sequence+'</td></tr>'+
+                        '<tr><td colspan="2"><strong>VA Course Code:</strong> '+oData.course_code+'</td></tr>'+
+                        '<tr><td colspan="2"><br><strong>Students:</strong></td></tr>'+
+                        student_rows +
+                    '</table>'+
+                '</div>';
+            
+            return sOut;
+        }
+        
+        function toggle_collapse() {
+            $j('tbody tr', results_table).each(function() {
+                var nTr = this;
+                var i = $j.inArray(nTr, anOpen);
+                
+                if (results_table.fnIsOpen(this)) {
+                    $j('img', this).attr('src',"/images/vrb/details_open.png");
+                    $j('div.innerDetails', $j(nTr).next()[0]).slideUp(function() {
+                        results_table.fnClose(nTr);
+                    });
+                    if (i > -1) anOpen.splice(i,1);
+                }
+            });
+        }
+        
+        function toggle_expand() {
+            $j('tbody tr', results_table).each(function() {
+                var nTr = this;
+                var i = $j.inArray(nTr, anOpen);
+                
+                if (!results_table.fnIsOpen(this)) {
+                    $j('img', this).attr('src',"/images/vrb/details_close.png");
+                    var nDetailsRow = results_table.fnOpen(nTr, fnFormatDetails(results_table, nTr), 'details');
+                    $j('div.innerDetails', nDetailsRow).slideDown();
+                    if (i === -1) anOpen.push(nTr);
+                }
+            });
+        }
+        
+        
+        
+        $j(document).ready(function() {
+            
+            FormInputs.course_number.autocomplete({
+                source: "MSCSectionSearchParameter.json?type=course_number",
+                minLength: 2,
+                select: function(event, ui) {
+                    $j(this).val(ui.item.course_number);
+                }
+            });
+            
+            FormInputs.section_id.autocomplete({
+                source: "MSCSectionSearchParameter.json?type=section_id",
+                minLength: 2
+            });
+            
+            FormInputs.teacher_id.autocomplete({
+                source: "MSCSectionSearchParameter.json?type=teacher",
+                minLength: 2
+            });
+        });
+        
+        $j('a[title="ExpandDetail"]').live("click",function() {
+            toggle_expand();
+        });
+        $j('a[title="CollapseDetail"]').live("click",function() {
+            toggle_collapse();
+        });
+        
+        $j(FormInputs.search).on("click", function() {
+            DoSearch(
+                FormInputs.section_id.val(),
+                FormInputs.course_number.val(),
+                FormInputs.course_name.val(),
+                FormInputs.section_number.val(),
+                FormInputs.teacher_id.val()
+            );
+        });
+        
+        $j('#results_table td.control').live('click',function() {
+            var nTr = this.parentNode;
+            var i = $j.inArray(nTr, anOpen);
+            
+            if (i === -1) {
+                $j('img', this).attr('src',"/images/vrb/details_close.png");
+                var nDetailsRow = results_table.fnOpen(nTr, fnFormatDetails(results_table, nTr), 'details');
+                $j('div.innerDetails', nDetailsRow).slideDown();
+                anOpen.push(nTr);
+            } else {
+                $j('img', this).attr('src',"/images/vrb/details_open.png");
+                $j('div.innerDetails', $j(nTr).next()[0]).slideUp(function() {
+                    results_table.fnClose(nTr);
+                    anOpen.splice(i,1);
+                });
+            }
+        });       
+    </script>
+</body>
+</html>

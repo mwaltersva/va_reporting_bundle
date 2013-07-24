@@ -170,12 +170,12 @@
             var i = $j.inArray(nTr, anOpen);
             
             if (i === -1) {
-                $j('img', this).attr('src',"/scripts/vrb/DataTables/examples/examples_support/details_close.png");
+                $j('img', this).attr('src',"/images/vrb/details_close.png");
                 var nDetailsRow = results_table.fnOpen(nTr, fnFormatDetails(results_table, nTr), 'details');
                 $j('div.innerDetails', nDetailsRow).slideDown();
                 anOpen.push(nTr);
             } else {
-                $j('img', this).attr('src',"/scripts/vrb/DataTables/examples/examples_support/details_open.png");
+                $j('img', this).attr('src',"/images/vrb/details_open.png");
                 $j('div.innerDetails', $j(nTr).next()[0]).slideUp(function() {
                     results_table.fnClose(nTr);
                     anOpen.splice(i,1);
@@ -212,7 +212,7 @@
                 var i = $j.inArray(nTr, anOpen);
                 
                 if (results_table.fnIsOpen(this)) {
-                    $j('img', this).attr('src',"/scripts/vrb/DataTables/examples/examples_support/details_open.png");
+                    $j('img', this).attr('src',"/images/vrb/details_open.png");
                     $j('div.innerDetails', $j(nTr).next()[0]).slideUp(function() {
                         results_table.fnClose(nTr);
                     });
@@ -227,7 +227,7 @@
                 var i = $j.inArray(nTr, anOpen);
                 
                 if (!results_table.fnIsOpen(this)) {
-                    $j('img', this).attr('src',"/scripts/vrb/DataTables/examples/examples_support/details_close.png");
+                    $j('img', this).attr('src',"/images/vrb/details_close.png");
                     var nDetailsRow = results_table.fnOpen(nTr, fnFormatDetails(results_table, nTr), 'details');
                     $j('div.innerDetails', nDetailsRow).slideDown();
                     if (i === -1) anOpen.push(nTr);

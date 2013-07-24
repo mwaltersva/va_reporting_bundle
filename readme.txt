@@ -4,9 +4,9 @@ Author: Matt Walters
 
 3rd Party Packages: Datatables jQuery plugin. http://datatables.net
 
-Description:
 
-A number of reports to support virginia state reporting.
+Description: A number of reports to support virginia state reporting.
+
 
 Current Report List:
 
@@ -24,6 +24,9 @@ Description: Mimics the LEP student count table found on the VA SRC.
 
 Name: Roster Detail
 Description: Attempts to mimic the MSC roster detail report.
+
+Name: MSC Section Search
+Description: Allows searching of sections for MSC data by commonly used IDs in the DOE error reports.
 
 
 Installation:
@@ -46,7 +49,11 @@ Edit /admin/reports/reporttabs.html and add the following lines between a
 </li>
 <!-- End VRB Link -->
 
+
 History:
+---------- 07/24/2013 ----------
+Fixed a couple images paths.
+Added MSC Section Search report.
 
 ---------- 07/23/2013 ----------
 First "proper" master branch commit. 

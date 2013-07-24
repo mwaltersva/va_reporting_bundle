@@ -31,12 +31,15 @@
 <body>
     ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; Truancy Counts <!-- breadcrumb end -->~[wc:admin_navigation_css]
     <h1>Truancy Counts by School and Grade Level</h1>
+    <p><a href="#help" class="dialogDivM" title="Help">Help</a></p>
+    <div id="help" class="hide">
     <p>
         Finds all students where the truancy conference field has been checked.
         Just as the DOE verification report, this includes all active status codes
         where the student has an entry date prior to the last day of school and an
         exit date greater than the first day of school.
     </p>
+    </div>
     <div id="results_container" class="box-round">
         <div id="results_loading" style="text-align: center;"></div>
         <table id="results_table">

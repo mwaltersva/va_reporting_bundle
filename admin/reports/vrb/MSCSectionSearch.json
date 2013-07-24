@@ -55,6 +55,7 @@
 				1, 'Yes',
 				'No'
 			) flex_criteria_flag,
+			sec.id sectionid,
 			sced_subject,
 			sced_course_identifier,
 			sced_course_level,
@@ -126,7 +127,12 @@
 			AND ps_customfields.getteacherscf(t.id, 'va_exclude_from_msc') IS NULL
 			AND ps_customfields.getsectionscf(sec.id, 'va_exclude_from_msc') IS NULL
 			AND ps_customfields.getcoursescf(c.id, 'va_exclude_from_msc') IS NULL
-		GROUP BY 
+			~[if.~[gpv:section_id]#]AND sec.id = ~[gpv:section_id][/if]
+			~[if.~[gpv:course_number]#]AND c.course_number = '~[gpv:course_number]'[/if]
+			~[if.~[gpv:section_number]#]AND sec.section_number = '~[gpv:section_number]'[/if]
+			~[if.~[gpv:teacher_id]#]AND t.id = ~[gpv:teacher_id][/if]
+		GROUP BY
+			sec.id,
 			msc.teacher_type,
 			t.lastfirst,
 			c.course_number,
@@ -200,6 +206,7 @@
 			"defined_class_type":"~(defined_class_type)",
 			"HQ_flag":"~(HQ_flag)",
 			"flex_criteria_flag":"~(flex_criteria_flag)",
+			"section_id":"~(sectionid)",
 			"subject_area":"~(sced_subject_area)",
 			"course_identifier":"~(sced_course_identifier)",
 			"course_level":"~(sced_course_level)",
@@ -212,6 +219,7 @@
 	
 	"aoColumns": [
 		{"mDataProp":null,"sTitle":"Detail","sClass":"control center","sDefaultContent":"<img src=\"/images/vrb/details_open.png\">"},
+		{"mDataProp":"section_id","sTitle":"Section ID"},
 		{"mDataProp":"teacher_type","sTitle":"Teacher Type"},
 		{"mDataProp":"teacher_name","sTitle":"Teacher Name"},
 		{"mDataProp":"course_number","sTitle":"Course Number"},
