@@ -1,0 +1,13 @@
+div.innerDetails { display: none }
+table.innerDetails {
+    padding: 5px;
+    padding-left: 50px;
+    border: 1px solid;
+    text-align: left;
+    background-color: #F1F1F1;
+}
+td.title {
+    width: 20%;
+    font-weight: bold;
+    text-align: right;
+}

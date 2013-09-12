@@ -2,13 +2,13 @@
 <head>
 
 <!-- Required style sheets: screen.css, and print.css --> 
-	<link href="/images/css/screen.css" rel="stylesheet" media="screen"> 
-	<link href="/images/css/print.css" rel="stylesheet" media="print">
-	<link href="/scripts/vrb/DataTables/media/css/jquery.dataTables.css" rel="stylesheet">
-	<link href="/scripts/vrb/DataTables/extras/TableTools/media/css/TableTools_JUI.css" rel="stylesheet">
-	
-	<title>VA Discipline Log Search</title>
-	~[wc:commonscripts]
+    <link href="/images/css/screen.css" rel="stylesheet" media="screen"> 
+    <link href="/images/css/print.css" rel="stylesheet" media="print">
+    <link href="/scripts/vrb/DataTables/media/css/jquery.dataTables.css" rel="stylesheet">
+    <link href="/scripts/vrb/DataTables/extras/TableTools/media/css/TableTools_JUI.css" rel="stylesheet">
+    
+    <title>VA Discipline Log Search</title>
+    ~[wc:commonscripts]
     <script src="/scripts/vrb/DataTables/media/js/jquery.dataTables.min.js"></script>
     <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/TableTools.min.js"></script>
     <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/ZeroClipboard.js"></script>
@@ -30,65 +30,65 @@
 </head>
 <body>
     ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; Log Entry Search <!-- breadcrumb end -->~[wc:admin_navigation_css]
-	<h1>VA Log Entry Search</h1>
-	<div class="box-round">
-		<h2 class="toggle expanded">Search Criteria</h2>
-		<div id="search_criteria">
-		<table>
-		    <tbody>
-		        <tr class="~[evenoddrow]">
-    		        <td class="bold">Student Number</td>
-    		        <td><input type="text" id="student_number"></td>
-    		    </tr>
-    		    <tr class="~[evenoddrow]">
-    		        <td class="bold">Incident Number</td>
-    		        <td><input type="text" id="incident_number"></td>
-    		    </tr>
-    		    <tr class="~[evenoddrow]">
-    		        <td class="bold">Log Entry Date</td>
-    		        <td><input type="text" class="psDateWidget" id="log_entry_date"></td>
-    		    </tr>
-    		    <tr class="~[evenoddrow]">
-    		        <td class="bold">Incident Date</td>
-    		        <td><input type="text" class="psDateWidget" id="incident_date"></td>
-    		    </tr>
-    		    <tr class="~[evenoddrow]">
-    		        <td class="bold">Days Suspended</td>
-    		        <td>
-    		            <select id="days_suspended_operator">
-    		                <option value="=">=</option>
-    		                <option value="&lt;">&lt;</option>
-    		                <option value="&lt;=">&lt;=</option>
-    		                <option value="&gt;">&gt;</option>
-    		                <option value="&gt;=">&gt;=</option>
-    		                <option value="&lt;&gt;">&lt;&gt;</option>
-    		            </select>
-    		            <input type="number" id="days_suspended">
-    		        </td>
-    		    </tr>
-    		    <tr class="~[evenoddrow]">
-    		        <td class="bold">Sanction Code</td>
-    		        <td>
-    		            <select id="sanction_code">
-    		                <option value="">Choose a Sanction...</option>
-    		                <option value="01">ISS For Special Ed Students</option>
-    		                <option value="02">Short-Term Suspension</option>
-    		                <option value="03">Long-Term Suspension</option>
-    		                <option value="04">Expulsion</option>
-    		                <option value="05">Special Ed interim placement - LEA Descision</option>
-    		                <option value="06">Special Ed interim placement - HO Descision</option>
-    		                <option value="07">Modified Expulsion to Suspension</option>
-    		                <option value="99">None of the Above</option>
-    		            </select>
-    		        </td>
-    		    </tr>
-    		    <tr class="~[evenoddrow]">
-    		        <td class="bold">Offense Code</td>
-    		        <td><input type="text" id="offense_code"></td>
-    		    </tr>
-		    </tbody>
-		</table>
-		<div class="button-row"><button id="search_button">Search</button></div>
+    <h1>VA Log Entry Search</h1>
+    <div class="box-round">
+        <h2 class="toggle expanded">Search Criteria</h2>
+        <div id="search_criteria">
+        <table>
+            <tbody>
+                <tr class="~[evenoddrow]">
+                    <td class="bold">Student Number</td>
+                    <td><input type="text" id="student_number"></td>
+                </tr>
+                <tr class="~[evenoddrow]">
+                    <td class="bold">Incident Number</td>
+                    <td><input type="text" id="incident_number"></td>
+                </tr>
+                <tr class="~[evenoddrow]">
+                    <td class="bold">Log Entry Date</td>
+                    <td><input type="text" class="psDateWidget" id="log_entry_date"></td>
+                </tr>
+                <tr class="~[evenoddrow]">
+                    <td class="bold">Incident Date</td>
+                    <td><input type="text" class="psDateWidget" id="incident_date"></td>
+                </tr>
+                <tr class="~[evenoddrow]">
+                    <td class="bold">Days Suspended</td>
+                    <td>
+                        <select id="days_suspended_operator">
+                            <option value="=">=</option>
+                            <option value="&lt;">&lt;</option>
+                            <option value="&lt;=">&lt;=</option>
+                            <option value="&gt;">&gt;</option>
+                            <option value="&gt;=">&gt;=</option>
+                            <option value="&lt;&gt;">&lt;&gt;</option>
+                        </select>
+                        <input type="number" id="days_suspended">
+                    </td>
+                </tr>
+                <tr class="~[evenoddrow]">
+                    <td class="bold">Sanction Code</td>
+                    <td>
+                        <select id="sanction_code">
+                            <option value="">Choose a Sanction...</option>
+                            <option value="01">ISS For Special Ed Students</option>
+                            <option value="02">Short-Term Suspension</option>
+                            <option value="03">Long-Term Suspension</option>
+                            <option value="04">Expulsion</option>
+                            <option value="05">Special Ed interim placement - LEA Descision</option>
+                            <option value="06">Special Ed interim placement - HO Descision</option>
+                            <option value="07">Modified Expulsion to Suspension</option>
+                            <option value="99">None of the Above</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr class="~[evenoddrow]">
+                    <td class="bold">Offense Code</td>
+                    <td><input type="text" id="offense_code"></td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="button-row"><button id="search_button">Search</button></div>
     </div>
     </div>
     <div id="results_container" class="box-round">
