@@ -25,7 +25,7 @@
             regexp_replace(l.entry, chr(91) || '^a-zA-Z0-9.,!? ' || chr(93), '') entry,
             ps_customfields.getcf('log', l.id, 'va_primary_code') offense_code1,
             ps_customfields.getcf('log', l.id, 'va_offense_code2') offense_code2,
-            ps_customfields.getcf('log', l.id, 'va_offense_cdoe3') offense_code3,
+            ps_customfields.getcf('log', l.id, 'va_offense_code3') offense_code3,
             NVL(ps_customfields.getcf('log', l.id, 'va_firearms'),0) firearms,
             NVL(ps_customfields.getcf('log', l.id, 'va_non_firearms'),0) non_firearms,
             NVL(ps_customfields.getcf('log', l.id, 'va_victims'),0) victims,
