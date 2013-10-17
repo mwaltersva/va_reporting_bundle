@@ -32,7 +32,7 @@
 				          s.exitdate,
 				          ps_customfields.getstudentscf(s.id, 'va_primary_dis_code') disability_code,
 				          CASE
-				               WHEN to_char(ps_customfields.getstudentscf(s.id, 'va_servingdistrict'), 'FM000') || to_char(ps_customfields.getstudentscf(s.id, 'va_servingschool'),'FM0000') IN
+				               WHEN to_char(NVL(ps_customfields.getstudentscf(s.id, 'va_servingdistrict'),~[displaypref:districtnumber]), 'FM000') || to_char(ps_customfields.getstudentscf(s.id, 'va_servingschool'),'FM0000') IN
 				                    (~[displaypref:vrb_nm_schools])
 				               THEN
 				                    NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
@@ -51,7 +51,7 @@
 				          re.exitdate,
 				          ps_customfields.getcf('reenrollments', re.id, 'va_primary_dis_code') disability_code,
 				          CASE
-				               WHEN to_char(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),'FM000') || to_char(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),'FM0000') IN
+				               WHEN to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),~[displaypref:districtnumber]),'FM000') || to_char(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),'FM0000') IN
 				                    (~[displaypref:vrb_nm_schools])
 				               THEN
 				                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
