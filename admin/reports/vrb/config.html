@@ -1,0 +1,83 @@
+<html>
+<head>
+
+<!-- Required style sheets: screen.css, and print.css --> 
+    <link href="/images/css/screen.css" rel="stylesheet" media="screen"> 
+    <link href="/images/css/print.css" rel="stylesheet" media="print">
+    <style type="text/css">
+        td.title {
+            width: 25%;
+            minwidth: 150px;
+        }
+    </style>
+    <title>Virginia Reporting Bundle Config</title>
+    ~[wc:commonscripts]
+</head>
+<body>
+<form action="/admin/changesrecorded.white.html" method="post">
+    ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; VRB Config <!-- breadcrumb end -->~[wc:admin_navigation_css]
+    <h1>VRB Config</h1>
+    <div id="Config" class="box-round">
+        <h2>General Options</h2>
+        <table>
+            <tr class="~[evenoddrow]">
+                <td class="title"><label for="nm_schools">Non-Membership Schools</label></td>
+                <td>
+                    <input type="text" name="[pref]vrb_nm_schools" id="nm_schools" value="" size="50">
+                </td>
+            </tr>
+            <tr class="~[evenoddrow]">
+                <td class="title"><label for="regional_centers">Regional Centers</label></td>
+                <td>
+                    <input type="text" name="[pref]vrb_regional_centers" id="regional_centers" value="" size="50">
+                </td>
+            </tr>
+        </table>
+        ~[if.modaccess]<input type="hidden" name="ac" value="prim"><div class="button-row">~[submitbutton]</div>[/if]
+        <div class="feedback-note">
+            <ul>
+                <li><strong>Non-Membership Schools - </strong>This should be a comma delimitted list of non-membership schools your division uses.<br>At the very least you should include 6008000. There should be no trailing comma. E.g., 6008000,4220422,0019998,...</li>
+                <li><strong>Regional-Centers - </strong>A comma delimitted list of regional centers used by your division. Same format as "Non-Membership Schools"</li>
+            </ul>
+        </div>
+    </div>
+</form>
+<script type="text/javascript">
+
+    function check_trailing_comma(s) {
+        if (s[s.length]-1 === ',') {
+            return true;
+        } else {
+            return false;
+        }
+    }
+    
+    $j('form').submit(function() {
+        submitOnce_shouldShow = 0;
+        var errors = 0;
+        var error_message = "";
+        
+        nm_schools = $j('#nm_schools');
+        regional_centers = $j('#regional_centers');
+        
+        if (check_trailing_comma(nm_schools.val()) === true) {
+            errors++;
+            error_message += 'Non-Membership Schools contains a trailing comma\n';
+        }
+        
+        if (check_trailing_comma(regional_centers.val()) === true) {
+            errors++;
+            error_message +='Regional centers contains a trailing comma\n';
+        }
+        
+        if (errors > 0) {
+            alert(error_message);
+            return false;
+        } else {
+            loadingDialog();
+            return true;
+        }
+    });
+</script>
+</body>
+</html>

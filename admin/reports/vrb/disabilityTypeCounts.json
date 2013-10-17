@@ -3,88 +3,91 @@
 		~[tlist_sql;
 			SELECT
 				school_name,
-				AUT,
-				DB,
-				DD,
-				ED,
-				HI,
-				ID,
-				MD,
-				OHI,
-				OI,
-				SLD,
-				SLI,
-				TBI,
-				VI,
-				LEAD (CASE WHEN school_name IS NOT NULL THEN chr(44) ELSE NULL END)
-				OVER (ORDER BY high_grade, school_name ASC)
-			FROM (
-				SELECT
-					schl.name school_name,
-					decode(
-						enr.disability_code,
-						3,'MD',
-						4,'OI',
-						5,'VI',
-						6,'HI',
-						7,'SLD',
-						8,'ED',
-						9,'SLI',
-						10,'OHI',
-						12,'DB',
-						13,'AUT',
-						14,'TBI',
-						16,'DD',
-						19,'ID'
-					) disability,
-					enr.id studentid,
-					schl.high_grade
+				NVL(to_char(AUT), 'null') AUT,
+				NVL(to_char(DB), 'null') DB,
+				NVL(to_char(DD), 'null') DD,
+				NVL(to_char(ED), 'null') ED,
+				NVL(to_char(HI), 'null') HI,
+				NVL(to_char(ID), 'null') ID,
+				NVL(to_char(MD), 'null') MD,
+				NVL(to_char(OHI), 'null') OHI,
+				NVL(to_char(OI), 'null') OI,
+				NVL(to_char(SLD), 'null') SLD,
+				NVL(to_char(SLI), 'null') SLI,
+				NVL(to_char(TBI), 'null') TBI,
+				NVL(to_char(VI), 'null') VI,
+				LEAD (CASE WHEN school_name IS NOT NULL THEN chr(44) END)
+				OVER (order by high_grade,school_name ASC) comma
 				FROM (
-					SELECT
-						s.id,
-						to_number(ps_customfields.getstudentscf(s.id, 'va_primary_dis_code')) disability_code,
-						NVL(to_number(ps_customfields.getstudentscf(s.id, 'va_responsibleschool')),s.schoolid) schoolid
-					FROM students s
-					WHERE
-						ps_customfields.getstudentscf(s.id, 'va_primary_dis_code') IS NOT NULL
-						AND to_number(ps_customfields.getstudentscf(s.id, 'va_primary_dis_code')) <> 15
-						AND ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL
-						~[if.~[gpv:snapShotDate]#]AND to_date('~[gpv:snapShotDate]','MM/DD/YYYY') BETWEEN s.entrydate AND s.exitdate[else]AND current_date BETWEEN s.entrydate AND s.exitdate[/if]
-						~[if.is.a.school]AND s.schoolid = ~(curschoolid)[/if]
-					UNION ALL
-					SELECT
-						re.studentid id,
-						to_number(ps_customfields.getcf('reenrollments', re.id, 'va_primary_dis_code')),
-						NVL(to_number(ps_customfields.getcf('reenrollments', re.id, 'va_responsibleschool')),re.schoolid) schoolid
-					FROM reenrollments re
-					WHERE
-						ps_customfields.getcf('reenrollments', re.id, 'va_primary_dis_code') IS NOT NULL
-						AND to_number(ps_customfields.getcf('reenrollments', re.id, 'va_primary_dis_code')) <> 15
-						AND ps_customfields.getcf('reenrollments', re.id, 'va_np_fte') IS NULL
-						~[if.~[gpv:snapShotDate]#]AND to_date('~[gpv:snapShotDate]','MM/DD/YYYY') BETWEEN re.entrydate AND re.exitdate[else]AND current_date BETWEEN s.entrydate AND s.exitdate[/if]
-						~[if.is.a.school]AND re.schoolid = ~(curschoolid)[/if]
-				) enr
-				JOIN schools schl ON schl.school_number = enr.schoolid
-			) PIVOT (
-				count(studentid)
-				FOR disability IN (
-					'AUT' AUT,
-					'DB' DB,
-					'DD' DD,
-					'ED' ED,
-					'HI' HI,
-					'ID' ID,
-					'MD' MD,
-					'OHI' OHI,
-					'OI' OI,
-					'SLD' SLD,
-					'SLI' SLI,
-					'TBI' TBI,
-					'VI' VI
-				)
-			) ORDER BY high_grade, school_name ASC;
-		]{
-			"school_name":"~(school_name)",
+				SELECT
+				     schl.name school_name,
+				     schl.high_grade,
+				     to_number(st.disability_code) disability_code,
+				     count(st.disability_code) ttl
+				FROM ps_enrollment_all enr
+				JOIN (
+				     SELECT
+				          s.id studentid,
+				          s.entrydate,
+				          s.exitdate,
+				          ps_customfields.getstudentscf(s.id, 'va_primary_dis_code') disability_code,
+				          CASE
+				               WHEN to_char(ps_customfields.getstudentscf(s.id, 'va_servingdistrict'), 'FM000') || to_char(ps_customfields.getstudentscf(s.id, 'va_servingschool'),'FM0000') IN
+				                    (~[displaypref:vrb_nm_schools])
+				               THEN
+				                    NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
+				               ELSE
+				                    NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid)
+				          END responsible_school
+				     FROM students s
+				     WHERE
+				          ps_customfields.getstudentscf(s.id, 'va_primary_dis_code') IS NOT NULL AND
+				          ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL AND
+				          s.exitdate > s.entrydate
+				     UNION ALL
+				     SELECT
+				          re.studentid,
+				          re.entrydate,
+				          re.exitdate,
+				          ps_customfields.getcf('reenrollments', re.id, 'va_primary_dis_code') disability_code,
+				          CASE
+				               WHEN to_char(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),'FM000') || to_char(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),'FM0000') IN
+				                    (~[displaypref:vrb_nm_schools])
+				               THEN
+				                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
+				               ELSE
+				                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid)
+				          END responsible_school
+				     FROM reenrollments re
+				     WHERE
+				          ps_customfields.getcf('reenrollments',re.id,'va_primary_dis_code') IS NOT NULL AND
+				          ps_customfields.getcf('reenrollments',re.id,'va_np_fte') IS NULL AND
+				          re.exitdate > re.entrydate
+				     ) st ON st.studentid = enr.studentid AND st.entrydate = enr.entrydate AND st.exitdate = enr.exitdate
+				JOIN schools schl ON schl.school_number = st.responsible_school
+				WHERE
+				     to_date('~[gpv:snapshotDate]','MM/DD/YYYY') BETWEEN enr.entrydate AND enr.exitdate AND enr.exitdate > enr.entrydate
+				     GROUP BY schl.name, schl.high_grade, st.disability_code
+				) PIVOT (
+				     sum(ttl)
+				     FOR disability_code IN (
+				          13 AUT,
+				          12 DB,
+				          16 DD,
+				          8 ED,
+				          6 HI,
+				          19 ID,
+				          3 MD,
+				          10 OHI,
+				          4 OI,
+				          7 SLD,
+				          9 SLI,
+				          14 TBI,
+				          5 VI
+				     )
+			) ORDER BY high_grade,school_name ASC;
+			]{
+				"school_name":"~(school_name)",
 			"AUT":~(AUT),
 			"DB":~(DB),
 			"DD":~(DD),
@@ -98,7 +101,7 @@
 			"SLI":~(SLI),
 			"TBI":~(TBI),
 			"VI":~(VI)
-		}~(comma)[/tlist_sql]
+			}~(comma)[/tlist_sql]
 	],
 	
 	"aoColumns": [

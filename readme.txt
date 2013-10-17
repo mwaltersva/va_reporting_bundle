@@ -49,11 +49,8 @@ Edit /admin/reports/reporttabs.html and add the following lines between a
 </li>
 <!-- End VRB Link -->
 
-
-History:
----------- 07/24/2013 ----------
-Fixed a couple images paths.
-Added MSC Section Search report.
-
----------- 07/23/2013 ----------
-First "proper" master branch commit. 
+Usage:
+After installing the customization and adding the VRB tab, navigate to the VRB tab and click
+"VRB Configuration" in the report list. Enter a list of non-membership schools and regional
+centers your division uses in the fields provided. The entries should be comma delimited, with
+ no trailing or leading comma, and include leading zeros. E.g., 0010001.

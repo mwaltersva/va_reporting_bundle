@@ -14,26 +14,44 @@
 					ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') esl_code,
 					enr.studentid studentid
 				FROM (
-					SELECT
-						s.id studentid,
-						NVL(to_number(ps_customfields.getstudentscf(s.id, 'va_servingschool')),s.schoolid) schoolid
-					FROM students s
-					WHERE
-						~[if.~[gpv:snapshot_date]#]to_date('~[gpv:snapshot_date]', 'MM/DD/YYYY') BETWEEN s.entrydate AND s.exitdate[else]current_date BETWEEN s.entrydate AND s.exitdate[/if]
-						~[if.is.a.school]AND s.schoolid = ~(curschoolid)[/if]
-					UNION ALL
-					SELECT
-						re.studentid,
-						NVL(to_number(ps_customfields.getcf('reenrollments',re.id,'va_servingschool')),re.schoolid) schoolid
-					FROM reenrollments re
-					WHERE
-						~[if.~[gpv:snapshot_date]#]to_date('~[gpv:snapshot_date]', 'MM/DD/YYYY') BETWEEN re.entrydate AND re.exitdate[else]current_date BETWEEN re.entrydate AND re.exitdate[/if]
-						~[if.is.a.school]AND re.schoolid = ~(curschoolid)[/if]
+				     SELECT
+				          s.id studentid,
+				          s.entrydate,
+				          s.exitdate,
+				          CASE
+				               WHEN to_char(ps_customfields.getstudentscf(s.id, 'va_servingdistrict'), 'FM000') || to_char(ps_customfields.getstudentscf(s.id, 'va_servingschool'),'FM0000') IN
+				                    (~[displaypref:vrb_nm_schools])
+				               THEN
+				                    NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
+				               ELSE
+				                    NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid)
+				          END responsible_school
+				     FROM students s
+				     WHERE
+				          ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL
+				     UNION ALL
+				     SELECT
+				          re.studentid,
+				          re.entrydate,
+				          re.exitdate,
+				          CASE
+				               WHEN to_char(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),'FM000') || to_char(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),'FM0000') IN
+				                    (~[displaypref:vrb_nm_schools])
+				               THEN
+				                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
+				               ELSE
+				                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid)
+				          END responsible_school
+				     FROM reenrollments re
+				     WHERE
+				          ps_customfields.getcf('reenrollments',re.id,'va_np_fte') IS NULL
 				) enr
 				JOIN students s ON s.id = enr.studentid
-				JOIN schools schl ON schl.school_number = enr.schoolid
+				JOIN schools schl ON schl.school_number = enr.responsible_school
 				WHERE
-					ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') IS NOT NULL
+					ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') IS NOT NULL AND
+					to_date('~[gpv:snapshot_Date]','MM/DD/YYYY') BETWEEN enr.entrydate AND enr.exitdate AND
+					enr.exitdate > enr.entrydate
 			) PIVOT (
 				count(studentid)
 				FOR esl_code IN(
