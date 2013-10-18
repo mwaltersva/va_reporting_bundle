@@ -1,0 +1,95 @@
+<html>
+<head>
+
+<!-- Required style sheets: screen.css, and print.css --> 
+    <link href="/images/css/screen.css" rel="stylesheet" media="screen"> 
+    <link href="/images/css/print.css" rel="stylesheet" media="print">
+    <link href="/scripts/vrb/DataTables/media/css/jquery.dataTables.css" rel="stylesheet">
+    <link href="/scripts/vrb/DataTables/extras/TableTools/media/css/TableTools_JUI.css" rel="stylesheet">
+    <link href="/images/css/vrb/report.css" rel="stylesheet">
+    
+    <title>Students Served at Regional Centers</title>
+    ~[wc:commonscripts]
+    <script src="/scripts/vrb/DataTables/media/js/jquery.dataTables.min.js"></script>
+    <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/TableTools.min.js"></script>
+    <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/ZeroClipboard.js"></script>
+</head>
+<body>
+    ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; Student ESL Code Counts <!-- breadcrumb end -->~[wc:admin_navigation_css]
+    <h1>Students Served At Regional Centers</h1>
+    <div class="hide" id="help">
+        <p>
+            Counts students served at regional centers. Regional center division and school codes must be defined in the VRB config page.
+        </p>
+        <ul>
+            <li>October 1st - Fall SRC</li>
+            <li>December 1st - Dec 1 Special Ed child count</li>
+            <li>March 31st - Spring SRC</li>
+            <li>Last day of School - EOY SRC</li>
+        </ul>
+    </div>
+    <div id="search_container" class="box-round">
+        <h2 class="toggle expanded">Search Criteria</h2>
+        <div>
+        <a class="dialogDivM" title="Help" href="#help">Help</a>
+        <table id="search_table">
+            <tr>
+                <td class="bold">Snapshot Date:&nbsp;</td>
+                <td>
+                    <input id="snapshot_date" name="snapShotDate" type="text" class="psDateWidget" placeholder="MM/DD/YYYY" value="">
+                </td>
+            </tr>
+        </table>
+        <div class="button-row"><button id="search_button">Search</button></div>
+        </div>
+    </div>
+    <div id="results_container" class="box-round">
+        <div id="results_loading" style="text-align: center;"></div>
+        <table id="results_table">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <script type="text/javascript">
+        
+        var results_container = $j('#results_container');
+        var results_loading = $j('#results_loading');
+        var results_table = $j('#results_table');
+        
+        var FormInputs = {
+            snapshot_date: $j('#snapshot_date'),
+            search_button: $j('#search_button')
+        };
+        
+        function DoSearch(snapshot_date) {
+            try {
+                results_table.fnDestroy();
+                results_loading.empty();
+                $j("#results_table tbody").empty();
+                $j("#results_table thead").empty();
+            } 
+            catch(err) {
+                console.log("No table, " + err);
+            }
+            psToggleAll('collapse', '#content-main');
+            results_loading.append('<img src="/images/vrb/ajaxLoader.gif">');
+            $j.getJSON("regionalCenterCounts.json",{
+                snapshot_date: snapshot_date
+            }).done(function(data) {
+                results_loading.empty();
+                results_table.dataTable(data);
+            }).fail(function(error) {
+                console.log("error " + error);
+                results_loading.empty();
+                results_loading.append('An error has occured.');
+            });
+        }
+        
+        $j(FormInputs.search_button).click(function() {
+            DoSearch(FormInputs.snapshot_date.val());
+        });
+    </script>
+</body>
+</html>
