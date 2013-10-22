@@ -1,0 +1,111 @@
+{
+	"aaData": [
+		~[tlist_sql;
+			SELECT
+			     school_name,
+			     unsheltered,
+			     shelter,
+			     doubledup,
+			     hotelmotel,
+			     LEAD(CASE WHEN school_name IS NOT NULL THEN CHR(44) ELSE NULL END)
+			     OVER(ORDER BY high_grade, school_name ASC) comma
+			FROM (
+			     SELECT
+			          schl.name school_name,
+			          schl.high_grade,
+			          decode(ps_customfields.getstudentscf(s.id, 'va_primnight_rescode'),
+			               1,'Unsheltered',
+			               2,'Shelter',
+			               3,'Doubled-Up',
+			               4,'Hotel/Motel'
+			          ) rescode,
+			          count(enr.studentid) studs
+			     FROM (
+			          SELECT
+			               s.id studentid,
+			               CASE
+			                    WHEN to_char(NVL(ps_customfields.getstudentscf(s.id,'va_servingdistrict'),130),'FM000') || to_char(NVL(ps_customfields.getstudentscf(s.id,'va_servingschool'),s.schoolid),'FM0000')
+			                         IN (~[displaypref:vrb_nm_schools])
+			                    THEN NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
+			                    ELSE NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid)
+			               END reporting_school
+			          FROM students s
+			          WHERE
+			               s.exitdate > (
+			               SELECT
+			                    t.firstday
+			               FROM terms t
+			               WHERE
+			                    t.yearid = ~(curyearid)
+			                    AND t.schoolid = s.schoolid
+			                    AND t.isyearrec = 1
+			               )
+			               AND s.entrydate < s.exitdate
+			               AND s.entrydate < to_date('~[gpv:snapshot_date]','MM/DD/YYYY')			               
+						   ~[if.is.a.school]AND s.schoolid = ~(curschoolid)[/if]
+			          UNION ALL
+			          SELECT
+			               re.studentid studentid,
+			               CASE
+			                    WHEN to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),130),'FM000') || to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid),'FM0000')
+			                         IN (~[displaypref:vrb_nm_schools])
+			                    THEN NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
+			                    ELSE NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid)
+			               END reporting_school
+			          FROM reenrollments re
+			          WHERE
+			               re.exitdate > (
+			               SELECT
+			                    t.firstday
+			               FROM terms t
+			               WHERE
+			                    t.yearid = ~(curyearid)
+			                    AND t.schoolid = re.schoolid
+			                    AND t.isyearrec = 1
+			               )
+			               AND re.entrydate < re.exitdate
+			               AND re.entrydate < to_date('~[gpv:snapshot_date]','MM/DD/YYYY')
+			               ~[if.is.a.school]AND re.schoolid = ~(curschoolid)[/if]
+			     ) enr
+			     JOIN students s ON s.id = enr.studentid
+			     JOIN schools schl ON schl.school_number = enr.reporting_school
+			     WHERE
+			          ps_customfields.getstudentscf(s.id,'va_primnight_rescode') IS NOT NULL
+			     GROUP BY
+			          schl.name,
+			          schl.high_grade,
+			          decode(ps_customfields.getstudentscf(s.id, 'va_primnight_rescode'),
+			               1,'Unsheltered',
+			               2,'Shelter',
+			               3,'Doubled-Up',
+			               4,'Hotel/Motel'
+			          )
+			) PIVOT (
+			     MAX(studs) FOR RESCODE IN
+			          ('Unsheltered' unsheltered, 'Shelter' shelter, 'Doubled-Up' doubledup, 'Hotel/Motel' hotelmotel)
+			) ORDER BY high_grade, school_name ASC;
+			]{
+				"school_name":"~(school_name)",
+				"unsheltered":"~(unsheltered)",
+				"shelter":"~(shelter)",
+				"doubledup":"~(doubledup)",
+				"hotelmotel":"~(hotelmotel)"
+			}~(comma)[/tlist_sql]
+	],
+	
+	"aoColumns": [
+		{"mDataProp":"school_name","sTitle":"School Name"},
+		{"mDataProp":"unsheltered","sTitle":"Unsheltered"},
+		{"mDataProp":"shelter","sTitle":"Shelter"},
+		{"mDataProp":"doubledup","sTitle":"Doubled-Up"},
+		{"mDataProp":"hotelmotel","sTitle":"Hotel/Motel"}
+	],
+    "sDom": "T<\"H\"fr>t<\"F\"ip>",
+    "oTableTools": {
+        "sSwfPath": "/scripts/vrb/DataTables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf"
+    },
+    "bJQueryUI": true,
+    "bPaginate": false,
+	"bFilter": false,
+	"aaSorting": []
+}

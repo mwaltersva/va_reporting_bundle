@@ -1,0 +1,139 @@
+{
+	"aaData": [
+		~[tlist_sql;
+			SELECT
+			     school_name,
+			     KA,
+			     KP,
+			     KG,
+			     T1,
+			     g1,
+			     g2,
+			     g3,
+			     g4,
+			     g5,
+			     g6,
+			     g7,
+			     g8,
+			     g9,
+			     g10,
+			     g11,
+			     g12,
+			     LEAD(CASE WHEN school_name IS NOT NULL THEN chr(44) ELSE NULL END)
+			     OVER(ORDER BY school_name ASC) comma
+			FROM (
+			     SELECT
+			          schl.name school_name,
+			          stu.studentid id,
+			          stu.grade_level
+			     FROM (
+			          SELECT
+			               s.id studentid,
+			               CASE WHEN to_char(NVL(ps_customfields.getstudentscf(s.id, 'va_servingdistrict'),130),'FM000') || to_char(NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid),'FM0000') IN
+			                    (6008000,4220422,3060631,2650010)
+			               THEN
+			                    NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
+			               ELSE
+			                    NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid)
+			               END reporting_school,
+			               NVL(ps_customfields.getstudentscf(s.id, 'va_gradecode'),to_char(s.grade_level)) grade_level
+			          FROM students s
+			          WHERE
+			               s.entrydate <= to_date('~[gpv:snapshot_date]','MM/DD/YYYY') AND
+			               s.exitdate >= (
+			                    SELECT
+			                         t.firstday
+			                    FROM terms t
+			                    WHERE
+			                         t.schoolid = s.schoolid AND
+			                         t.isyearrec = 1 AND
+			                         t.yearid = ~(curyearid)
+			               ) AND
+			               s.exitdate > s.entrydate AND
+			               ps_customfields.getstudentscf(s.id, 'va_immigrant') = '1'
+			          UNION ALL
+			          SELECT
+			               re.studentid studentid,
+			               CASE WHEN to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),130),'FM000') || to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid),'FM0000') IN
+			                    (6008000,4220422,3060631,2650010)
+			               THEN
+			                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
+			               ELSE
+			                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid)
+			               END reporting_school,
+			               NVL(ps_customfields.getcf('reenrollments',re.id,'va_gradecode'),to_char(re.grade_level)) grade_level
+			          FROM reenrollments re
+			          WHERE
+			               re.entrydate <= to_date('~[gpv:snapshot_date]','MM/DD/YYYY') AND
+			               re.exitdate >= (
+			                    SELECT
+			                         t.firstday
+			                    FROM terms t
+			                    WHERE
+			                         t.schoolid = re.schoolid AND
+			                         t.isyearrec = 1 AND
+			                         t.yearid = ~(curyearid)
+			               ) AND
+			               re.exitdate > re.entrydate AND
+			               (
+			                    SELECT
+			                         ps_customfields.getstudentscf(s.id, 'va_immigrant')
+			                    FROM students s
+			                    WHERE
+			                         s.id = re.studentid
+			               ) = 1
+			     ) stu
+			     LEFT OUTER JOIN schools schl ON schl.school_number = stu.reporting_school
+			) PIVOT (
+			     count(id)
+			     FOR grade_level IN
+			          ('KA' KA,'KP' KP,'KG' KG,'T1' T1,'1' g1,'2' g2,'3' g3,'4' g4,'5' g5,'6' g6,'7' g7,'8' g8,'9' g9,'10' g10,'11' g11,'12' g12)
+			) ORDER BY school_name ASC;
+		]{
+			"school_name":"~(school_name)",
+			"KA":"~(KA)",
+			"KP":"~(KP)",
+			"KG":"~(KG)",
+			"T1":"~(T1)",
+			"G1":"~(g1)",
+			"G2":"~(g2)",
+			"G3":"~(g3)",
+			"G4":"~(g4)",
+			"G5":"~(g5)",
+			"G6":"~(g6)",
+			"G7":"~(g7)",
+			"G8":"~(g8)",
+			"G9":"~(g9)",
+			"G10":"~(g10)",
+			"G11":"~(g11)",
+			"G12":"~(g12)"
+		}~(comma)[/tlist_sql]
+	],
+	
+	"aoColumns": [
+		{"mDataProp":"school_name","sTitle":"School Name"},
+		{"mDataProp":"KA","sTitle":"KA"},
+		{"mDataProp":"KP","sTitle":"KP"},
+		{"mDataProp":"KG","sTitle":"KG"},
+		{"mDataProp":"T1","sTitle":"T1"},
+		{"mDataProp":"G1","sTitle":"1"},
+		{"mDataProp":"G2","sTitle":"2"},
+		{"mDataProp":"G3","sTitle":"3"},
+		{"mDataProp":"G4","sTitle":"4"},
+		{"mDataProp":"G5","sTitle":"5"},
+		{"mDataProp":"G6","sTitle":"6"},
+		{"mDataProp":"G7","sTitle":"7"},
+		{"mDataProp":"G8","sTitle":"8"},
+		{"mDataProp":"G9","sTitle":"9"},
+		{"mDataProp":"G10","sTitle":"10"},
+		{"mDataProp":"G11","sTitle":"11"},
+		{"mDataProp":"G12","sTitle":"12"}
+	],
+    "sDom": "T<\"H\"fr>t<\"F\"ip>",
+    "oTableTools": {
+        "sSwfPath": "/scripts/vrb/DataTables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf"
+    },
+    "bJQueryUI": true,
+    "bPaginate": false,
+	"bFilter": false
+}
