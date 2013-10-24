@@ -1,0 +1,62 @@
+<table id="detailResults">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Date of Birth</th>
+            <th>PS enrolled School</th>
+        </tr>
+    </thead>
+    <tbody>
+            ~[tlist_sql;
+                SELECT
+                     dcid,
+                     lastfirst,
+                     to_char(dob,'MM/DD/YYYY') dob,
+                     schoolid
+                FROM (
+                     SELECT DISTINCT
+                          s.dcid,
+                          s.lastfirst,
+                          CASE
+                               WHEN enr.grade_level NOT IN ('PK','JK','KG','PG','TT') THEN 'G' || to_char(enr.grade_level)
+                               ELSE to_char(enr.grade_level)
+                          END grade_level,
+                          CASE 
+                               WHEN trunc(months_between(to_date('~[gpv:snapshot_date]','MM/DD/YYYY'),s.dob)/12) < 5 THEN 'Under 5'
+                               WHEN trunc(months_between(to_date('~[gpv:snapshot_date]','MM/DD/YYYY'),s.dob)/12) > 19 THEN 'Over 20'
+                               ELSE to_char(trunc(months_between(to_date('~[gpv:snapshot_date]','MM/DD/YYYY'),s.dob)/12))
+                          END age,               
+                          s.dob,
+                          s.schoolid
+                     FROM (
+                          SELECT
+                               s.id studentid,
+                               NVL(ps_customfields.getstudentscf(s.id, 'va_gradecode'),to_char(s.grade_level)) grade_level
+                          FROM students s
+                          WHERE
+                               to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN s.entrydate AND s.exitdate
+                               AND s.exitdate > s.entrydate
+                               AND ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL
+                          UNION ALL
+                          SELECT
+                               re.studentid studentid,
+                               NVL(ps_customfields.getcf('reenrollments',re.id,'va_gradecode'),to_char(re.grade_level)) grade_level
+                          FROM reenrollments re
+                          WHERE
+                               to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN re.entrydate AND re.exitdate
+                               AND re.exitdate > re.entrydate
+                               AND ps_customfields.getcf('reenrollments',re.id,'va_np_fte') IS NULL
+                     ) enr
+                     JOIN students s ON s.id = enr.studentid
+                )
+                WHERE
+                     age = '~[gpv:age]'
+                     AND grade_level = '~[gpv:grade_level]'
+                     ~[if.is.a.school]AND schoolid = ~(curschoolid)[/if];
+            ]<tr>
+                <td><a href="/admin/students/home.html?frn=001~(dcid)">~(lastfirst)</a></td>
+                <td>~(dob)</td>
+                <td>~(schoolid)</td>
+            </tr>[/tlist_sql]
+        </tbody>
+</table>

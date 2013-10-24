@@ -52,6 +52,7 @@
             </tbody>
         </table>
     </div>
+    <div id="detail_container" class="hidden"></div>
     <script type="text/javascript">
         
         var results_container = $j('#results_container');
@@ -80,6 +81,43 @@
             }).done(function(data) {
                 results_loading.empty();
                 results_table.dataTable(data);
+                $j('.detail').each(function() {
+                    $j(this).click(function() {
+                        try {
+                            $j('#detailResults').dataTable().fnDestroy();
+                            $j('#detailResults').remove();
+                        } catch(err) {
+                            console.log(err);
+                        }
+                        loadingDialog();
+                        $j.get(
+                            'detail/ageDistributionDetail.html?age='+ $j(this).data("age") +
+                            '&grade_level='+ $j(this).data("grade") +
+                            '&snapshot_date=' + FormInputs.snapshot_date.val()
+                        ).done(function(data) {
+                            closeLoading();
+                            $j('#detail_container').append(data);
+                            $j('#detail_container').removeClass('hidden');
+                            $j('#detail_container').dialog({
+                                maxHeight: 500,
+                                modal: true
+                            });
+                            $j('#detailResults').addClass('display').dataTable({
+                                "sDom": "T<\"H\"fr>t<\"F\"ip>",
+                                "oTableTools": {
+                                    "sSwfPath": "/scripts/vrb/DataTables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf"
+                                },
+                                "bJQueryUI": true,
+                                "bPaginate": false,
+                                "bFilter": false,
+                                "aaSorting": [],
+                                "aoColumnDefs":[
+                                    {"bSortable":false, "aTargets":[0]}
+                                ]
+                            });
+                        });
+                    });
+                });
             }).fail(function(error) {
                 console.log("error " + error);
                 results_loading.empty();
