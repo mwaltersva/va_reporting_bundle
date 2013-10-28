@@ -3,24 +3,25 @@
 		~[tlist_sql;
 			SELECT
 				school_name,
-				NVL(to_char(AUT), 'null') AUT,
-				NVL(to_char(DB), 'null') DB,
-				NVL(to_char(DD), 'null') DD,
-				NVL(to_char(ED), 'null') ED,
-				NVL(to_char(HI), 'null') HI,
-				NVL(to_char(ID), 'null') ID,
-				NVL(to_char(MD), 'null') MD,
-				NVL(to_char(OHI), 'null') OHI,
-				NVL(to_char(OI), 'null') OI,
-				NVL(to_char(SLD), 'null') SLD,
-				NVL(to_char(SLI), 'null') SLI,
-				NVL(to_char(TBI), 'null') TBI,
-				NVL(to_char(VI), 'null') VI,
+				'<a data-school=\"' || school_number || '\" data-disability=\"AUT\" class=\"detail\">' || AUT || '</a>' AUT,
+				'<a data-school=\"' || school_number || '\" data-disability=\"DB\" class=\"detail\">' || DB || '</a>' DB,
+				'<a data-school=\"' || school_number || '\" data-disability=\"DD\" class=\"detail\">' || DD || '</a>' DD,
+				'<a data-school=\"' || school_number || '\" data-disability=\"ED\" class=\"detail\">' || ED || '</a>' ED,
+				'<a data-school=\"' || school_number || '\" data-disability=\"HI\" class=\"detail\">' || HI || '</a>' HI,
+				'<a data-school=\"' || school_number || '\" data-disability=\"ID\" class=\"detail\">' || ID || '</a>' ID,
+				'<a data-school=\"' || school_number || '\" data-disability=\"MD\" class=\"detail\">' || MD || '</a>' MD,
+				'<a data-school=\"' || school_number || '\" data-disability=\"OHI\" class=\"detail\">' || OHI || '</a>' OHI,
+				'<a data-school=\"' || school_number || '\" data-disability=\"OI\" class=\"detail\"' || OI || '</a>' OI,
+				'<a data-school=\"' || school_number || '\" data-disability=\"SLD\" class=\"detail\">' || SLD || '</a>' SLD,
+				'<a data-school=\"' || school_number || '\" data-disability=\"SLI\" class=\"detail\">' || SLI || '</a>' SLI,
+				'<a data-school=\"' || school_number || '\" data-disability=\"TBI\" class=\"detail\">' || TBI || '</a>' TBI,
+				'<a data-school=\"' || school_number || '\" data-disability=\"VI\" class=\"detail\">' || VI || '</a>' VI,
 				LEAD (CASE WHEN school_name IS NOT NULL THEN chr(44) END)
 				OVER (order by high_grade,school_name ASC) comma
 				FROM (
 				SELECT
 				     schl.name school_name,
+				     schl.school_number,
 				     schl.high_grade,
 				     to_number(st.disability_code) disability_code,
 				     count(st.disability_code) ttl
@@ -67,7 +68,7 @@
 				JOIN schools schl ON schl.school_number = st.responsible_school
 				WHERE
 				     to_date('~[gpv:snapshotDate]','MM/DD/YYYY') BETWEEN enr.entrydate AND enr.exitdate AND enr.exitdate > enr.entrydate
-				     GROUP BY schl.name, schl.high_grade, st.disability_code
+				     GROUP BY schl.name, schl.high_grade, st.disability_code, schl.school_number
 				) PIVOT (
 				     sum(ttl)
 				     FOR disability_code IN (
@@ -88,19 +89,19 @@
 			) ORDER BY high_grade,school_name ASC;
 			]{
 				"school_name":"~(school_name)",
-			"AUT":~(AUT),
-			"DB":~(DB),
-			"DD":~(DD),
-			"ED":~(ED),
-			"HI":~(HI),
-			"ID":~(ID),
-			"MD":~(MD),
-			"OHI":~(OHI),
-			"OI":~(OI),
-			"SLD":~(SLD),
-			"SLI":~(SLI),
-			"TBI":~(TBI),
-			"VI":~(VI)
+			"AUT":"~(AUT)",
+			"DB":"~(DB)",
+			"DD":"~(DD)",
+			"ED":"~(ED)",
+			"HI":"~(HI)",
+			"ID":"~(ID)",
+			"MD":"~(MD)",
+			"OHI":"~(OHI)",
+			"OI":"~(OI)",
+			"SLD":"~(SLD)",
+			"SLI":"~(SLI)",
+			"TBI":"~(TBI)",
+			"VI":"~(VI)"
 			}~(comma)[/tlist_sql]
 	],
 	

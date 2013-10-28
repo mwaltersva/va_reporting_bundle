@@ -1,0 +1,93 @@
+<table id="detailResults">
+    <thead>
+        <tr>
+            <th>Name</th><th>Entry Date</th><th>Exit Date</th><th>Respbl. School</th><th>Serv. School</th><th>Enrolled School</th>
+        </tr>
+    </thead>
+    <tbody>
+        ~[tlist_sql;
+            SELECT
+                 s.dcid,
+                 s.lastfirst,
+                 to_char(s.entrydate,'MM/DD/YYYY') entry_date,
+                 to_char(s.exitdate,'MM/DD/YYYY') exit_date,
+                 NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid) responsible_school,
+                 NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid) serving_school,
+                 s.schoolid enrolled_school
+            FROM students s
+            WHERE
+                 decode(ps_customfields.getstudentscf(s.id,'va_primary_dis_code'),
+                      13,'AUT',
+                      12,'DB',
+                      16,'DD',
+                      8,'ED',
+                      6,'HI',
+                      19,'ID',
+                      3,'MD',
+                      10,'OHI',
+                      4,'OI',
+                      7,'SLD',
+                      9,'SLI',
+                      14,'TBI',
+                      5,'VI') = '~[gpv:disability]'
+                 AND CASE
+                      WHEN
+                           to_char(NVL(ps_customfields.getstudentscf(s.id, 'va_servingdistrict'),130),'FM000') || to_char(ps_customfields.getstudentscf(s.id, 'va_servingschool'),'FM0000') IN
+                                (~[displaypref:vrb_nm_schools])
+                      THEN
+                           NVL(ps_customfields.getstudentscf(s.id,'va_responsibleschool'),s.schoolid)
+                      ELSE
+                           NVL(ps_customfields.getstudentscf(s.id,'va_servingschool'),s.schoolid)
+                 END = ~[gpv:school]
+                 AND ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL
+                 AND s.exitdate > s.entrydate
+                 AND to_date('~[gpv:snapshot_Date]','MM/DD/YYYY') BETWEEN s.entrydate AND s.exitdate
+            UNION ALL
+            SELECT
+                 s.dcid,
+                 s.lastfirst,
+                 to_char(re.entrydate,'MM/DD/YYYY') entry_date,
+                 to_char(re.exitdate,'MM/DD/YYYY') exit_date,
+                 NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid) responsible_school,
+                 NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid) serving_school,
+                 re.schoolid enrolled_school
+            FROM reenrollments re
+            JOIN students s ON s.id = re.studentid
+            WHERE
+                 decode(ps_customfields.getcf('reenrollments',re.id,'va_primary_dis_code'),
+                      13,'AUT',
+                      12,'DB',
+                      16,'DD',
+                      8,'ED',
+                      6,'HI',
+                      19,'ID',
+                      3,'MD',
+                      10,'OHI',
+                      4,'OI',
+                      7,'SLD',
+                      9,'SLI',
+                      14,'TBI',
+                      5,'VI') = '~[gpv:disability]'
+                 AND CASE
+                      WHEN
+                           to_char(NVL(ps_customfields.getcf('reenrollments',re.id, 'va_servingdistrict'),130),'FM000') || to_char(ps_customfields.getcf('reenrollments',re.id, 'va_servingschool'),'FM0000') IN
+                                (~[displaypref:vrb_nm_schools])
+                      THEN
+                           NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
+                      ELSE
+                           NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid)
+                 END = ~[gpv:school]
+                 AND ps_customfields.getcf('reenrollments',re.id, 'va_np_fte') IS NULL
+                 AND re.exitdate > re.entrydate
+                 AND to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN re.entrydate AND re.exitdate;]
+             <tr>
+                <td><a href="/admin/students/home.html?frn=001~(dcid)">~(lastfirst)</a></td>
+                <td>~(entry_date)</td>
+                <td>~(exit_date)</td>
+                <td>~(responsible_school)</td>
+                <td>~(serving_school)</td>
+                <td>~(enrolled_school)</td>
+            </tr>
+       [/tlist_sql]        
+    </tbody>
+</table>
