@@ -1,0 +1,66 @@
+{
+	"aaData": [
+		~[tlist_sql;
+			SELECT
+			     c.course_number,
+			     c.course_name,
+			     ps_customfields.getcoursescf(c.id,'va_sced_subject_area') subject_area,
+			     ps_customfields.getcoursescf(c.id,'va_sced_crs_identifier') course_id,
+			     ps_customfields.getcoursescf(c.id,'va_sced_crs_level') course_level,
+			     ps_customfields.getcoursescf(c.id,'va_sced_avail_credit') available_credit,
+			     ps_customfields.getcoursescf(c.id,'va_sced_sequence') sequence,
+			     LEAD(CASE WHEN c.course_number IS NOT NULL THEN chr(44) ELSE NULL END)
+			     OVER(ORDER BY c.course_number ASC) comma
+			FROM courses c
+			JOIN sections sec ON sec.course_number = c.course_number
+			JOIN cc ON cc.sectionid = sec.id
+			JOIN terms t ON t.id = sec.termid AND t.schoolid = sec.schoolid
+			WHERE
+			     t.yearid = ~(curyearid) AND
+			     ps_customfields.getcoursescf(c.id,'va_exclude_from_msc') IS NULL AND
+			     ps_customfields.getsectionscf(sec.id,'va_exclude_from_msc') IS NULL AND
+			     (
+			          ps_customfields.getcoursescf(c.id,'va_sced_subject_area') IS NULL OR
+			          ps_customfields.getcoursescf(c.id,'va_sced_crs_identifier') IS NULL OR
+			          ps_customfields.getcoursescf(c.id,'va_sced_crs_level') IS NULL OR
+			          ps_customfields.getcoursescf(c.id,'va_sced_avail_credit') IS NULL OR
+			          ps_customfields.getcoursescf(c.id,'va_sced_sequence') IS NULL
+			     )
+			GROUP BY
+			     c.course_number,
+			     c.course_name,
+			     ps_customfields.getcoursescf(c.id,'va_sced_subject_area'),
+			     ps_customfields.getcoursescf(c.id,'va_sced_crs_identifier'),
+			     ps_customfields.getcoursescf(c.id,'va_sced_crs_level'),
+			     ps_customfields.getcoursescf(c.id,'va_sced_avail_credit'),
+			     ps_customfields.getcoursescf(c.id,'va_sced_sequence')
+			HAVING count(cc.id) > 0
+			ORDER BY c.course_number ASC;
+		]{
+			"course_number":"~(course_number)",
+			"course_name":"~(course_name)",
+			"subject_area":"~(subject_area)",
+			"course_id":"~(course_id)",
+			"course_level":"~(course_level)",
+			"available_credit":"~(available_credit)",
+			"sequence":"~(sequence)"
+		}~(comma)[/tlist_sql]
+	],
+	
+	"aoColumns": [
+		{"mDataProp":"course_number","sTitle":"Course Number"},
+		{"mDataProp":"course_name","sTitle":"Course Name"},
+		{"mDataProp":"subject_area","sTitle":"SCED Subject Area"},
+		{"mDataProp":"course_id","sTitle":"SCED Course ID"},
+		{"mDataProp":"course_level","sTitle":"SCED Course level"},
+		{"mDataProp":"available_credit","sTitle":"SCED Available Credit\nor Grade Span"},
+		{"mDataProp":"sequence","sTitle":"SCED Course Sequence"}
+	],
+    "sDom": "T<\"H\"fr>t<\"F\"ip>",
+    "oTableTools": {
+        "sSwfPath": "/scripts/vrb/DataTables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf"
+    },
+    "bJQueryUI": true,
+    "bPaginate": false,
+    "bFilter": false
+}
