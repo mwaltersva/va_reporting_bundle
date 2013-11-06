@@ -14,7 +14,7 @@
              WHERE
                   to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN s.entrydate AND s.exitdate AND
                   s.exitdate > s.entrydate AND
-                  NVL(ps_customfields.getstudentscf(s.id,'va_servingschool'),to_char(s.schoolid,'FM000')) = '~[gpv:school]' AND
+                  to_char(NVL(ps_customfields.getstudentscf(s.id,'va_servingschool'),s.schoolid,)'FM0000') = '~[gpv:school]' AND
                   s.grade_level = ~[gpv:grade]
              UNION ALL
              SELECT
@@ -28,7 +28,7 @@
              WHERE
                   to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN re.entrydate AND re.exitdate AND
                   re.exitdate > re.entrydate AND
-                  NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),to_char(re.schoolid,'FM000')) = '~[gpv:school]' AND
+                  to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid),'FM0000') = '~[gpv:school]' AND
                   re.grade_level = ~[gpv:grade];
         ]<tr>
             <td><a href="/admin/students/home.html?frn=001~(dcid)">~(lastfirst)</a></td>
