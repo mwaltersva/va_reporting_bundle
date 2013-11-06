@@ -1,0 +1,79 @@
+<table id="detailResults">
+    <thead>
+        <th>Name</th><th>Responsible School</th><th>Serving School</th><th>Enrolled School</th>
+    </thead>
+    <tbody>
+        ~[tlist_sql;
+             SELECT
+                s.dcid,
+                s.lastfirst,
+                enr.responsible_school,
+                enr.serving_school,
+                enr.enrolled_school
+             FROM (
+                  SELECT
+                       s.id studentid,
+                       CASE
+                            WHEN to_char(NVL(ps_customfields.getstudentscf(s.id,'va_servingdistrict'),130),'FM000') || to_char(NVL(ps_customfields.getstudentscf(s.id,'va_servingschool'),s.schoolid),'FM0000')
+                                 IN (~[displaypref:vrb_nm_schools])
+                            THEN NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
+                            ELSE NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid)
+                       END reporting_school,
+                       NVL(ps_customfields.getstudentscf(s.id,'va_responsibleschool'),s.schoolid) responsible_school,
+                       NVL(ps_customfields.getstudentscf(s.id,'va_servingschool'),s.schoolid) serving_school,
+                       s.schoolid enrolled_school
+                  FROM students s
+                  WHERE
+                       s.exitdate > (
+                       SELECT
+                            t.firstday
+                       FROM terms t
+                       WHERE
+                            t.yearid = ~(curyearid)
+                            AND t.schoolid = s.schoolid
+                            AND t.isyearrec = 1
+                       )
+                       AND s.entrydate < s.exitdate
+                       AND s.entrydate < to_date('~[gpv:snapshot_date]','MM/DD/YYYY')
+                       AND ps_customfields.getstudentscf(s.id,'va_primnight_rescode') = ~[gpv:primnight]                      
+                       ~[if.is.a.school]AND s.schoolid = ~(curschoolid)[/if]
+                  UNION ALL
+                  SELECT
+                       re.studentid studentid,
+                       CASE
+                            WHEN to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),130),'FM000') || to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid),'FM0000')
+                                 IN (~[displaypref:vrb_nm_schools])
+                            THEN NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
+                            ELSE NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid)
+                       END reporting_school,
+                       NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid) responsible_school,
+                       NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid) serving_school,
+                       re.schoolid enrolled_school
+                  FROM reenrollments re
+                  JOIN students s ON s.id = re.studentid
+                  WHERE
+                       re.exitdate > (
+                       SELECT
+                            t.firstday
+                       FROM terms t
+                       WHERE
+                            t.yearid = ~(curyearid)
+                            AND t.schoolid = re.schoolid
+                            AND t.isyearrec = 1
+                       )
+                       AND re.entrydate < re.exitdate
+                       AND re.entrydate < to_date('~[gpv:snapshot_date]','MM/DD/YYYY')
+                       AND ps_customfields.getstudentscf(s.id,'va_primnight_rescode') = ~[gpv:primnight]
+                       ~[if.is.a.school]AND re.schoolid = ~(curschoolid)[/if]
+             ) enr
+             JOIN students s ON s.id = enr.studentid
+             WHERE
+                ~[gpv:school] = reporting_school
+        ]<tr>
+            <td><a href="/admin/students/home.html?frn=001~(dcid)">~(lastfirst)</a></td>
+            <td>~(responsible_school)</td>
+            <td>~(serving_school)</td>
+            <td>~(enrolled_school)</td>
+        </tr>[/tlist_sql]
+    </tbody>
+</table>

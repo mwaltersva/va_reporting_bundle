@@ -1,0 +1,89 @@
+<table id="detailResults">
+    <thead>
+        <tr>
+            <th>Name</th><th>Responsible School</th><th>Serving School</th><th>Enrolled School</th>
+        </tr>
+    </thead>
+    <tbody>
+        ~[tlist_sql;
+             SELECT
+                  s.dcid,
+                  s.lastfirst,
+                  stu.responsible_school,
+                  stu.serving_school,
+                  stu.enroll_school
+             FROM (
+                  SELECT
+                       s.id studentid,
+                       CASE WHEN to_char(NVL(ps_customfields.getstudentscf(s.id, 'va_servingdistrict'),130),'FM000') || to_char(NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid),'FM0000') IN
+                            (6008000,4220422,3060631,2650010)
+                       THEN
+                            NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
+                       ELSE
+                            NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid)
+                       END reporting_school,
+                       NVL(ps_customfields.getstudentscf(s.id,'va_responsibleschool'),s.schoolid) responsible_school,
+                       NVL(ps_customfields.getstudentscf(s.id,'va_servingschool'),s.schoolid) serving_school,
+                       s.schoolid enroll_school,
+                       NVL(ps_customfields.getstudentscf(s.id, 'va_gradecode'),to_char(s.grade_level)) grade_level
+                  FROM students s
+                  WHERE
+                       s.entrydate <= to_date('~[gpv:snapshot_date]','MM/DD/YYYY') AND
+                       s.exitdate >= (
+                            SELECT
+                                 t.firstday
+                            FROM terms t
+                            WHERE
+                                 t.schoolid = s.schoolid AND
+                                 t.isyearrec = 1 AND
+                                 t.yearid = ~(curyearid)
+                       ) AND
+                       s.exitdate > s.entrydate AND
+                       ps_customfields.getstudentscf(s.id, 'va_immigrant') = '1'
+                  UNION ALL
+                  SELECT
+                       re.studentid studentid,
+                       CASE WHEN to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),130),'FM000') || to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid),'FM0000') IN
+                            (6008000,4220422,3060631,2650010)
+                       THEN
+                            NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
+                       ELSE
+                            NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid)
+                       END reporting_school,
+                       NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid) responsible_school,
+                       NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid) serving_school,
+                       re.schoolid enroll_school,
+                       NVL(ps_customfields.getcf('reenrollments',re.id,'va_gradecode'),to_char(re.grade_level)) grade_level
+                  FROM reenrollments re
+                  WHERE
+                       re.entrydate <= to_date('~[gpv:snapshot_date]','MM/DD/YYYY') AND
+                       re.exitdate >= (
+                            SELECT
+                                 t.firstday
+                            FROM terms t
+                            WHERE
+                                 t.schoolid = re.schoolid AND
+                                 t.isyearrec = 1 AND
+                                 t.yearid = ~(curyearid)
+                       ) AND
+                       re.exitdate > re.entrydate AND
+                       (
+                            SELECT
+                                 ps_customfields.getstudentscf(s.id, 'va_immigrant')
+                            FROM students s
+                            WHERE
+                                 s.id = re.studentid
+                       ) = 1
+             ) stu
+             JOIN students s ON stu.studentid = s.id
+             WHERE
+                stu.grade_level = '~[gpv:grade]' AND
+                stu.reporting_school = ~[gpv:school];
+        ]<tr>
+            <td><a href="/admin/students/home.html?frn=001~(dcid)">~(lastfirst)</a></td>
+            <td>~(responsible_school)</td>
+            <td>~(serving_school)</td>
+            <td>~(enroll_school)</td>
+        </tr>[/tlist_sql]
+    </tbody>
+</table>

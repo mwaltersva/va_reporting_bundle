@@ -3,13 +3,14 @@
 		~[tlist_sql;
 			SELECT
 				school_name,
-				ReceivingServices,
-				RefusedServices,
-				FormerlyLEP,
+				'<a class=\"detail\" data-reporting_school=\"' || school_number || '\" data-esl_code=\"1\">' || ReceivingServices || '</a>' ReceivingServices,
+				'<a class=\"detail\" data-reporting_school=\"' || school_number || '\" data-esl_code=\"2\">' || RefusedServices || '</a>' RefusedServices,
+				'<a class=\"detail\" data-reporting_school=\"' || school_number || '\" data-esl_code=\"3\">' || FormerlyLEP || '</a>' FormerlyLEP,
 				LEAD (CASE WHEN school_name IS NOT NULL THEN chr(44) ELSE NULL END)
 				OVER (ORDER BY school_name ASC) comma
 			FROM (
 				SELECT
+					schl.school_number,
 					schl.name school_name,
 					ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') esl_code,
 					enr.studentid studentid
@@ -28,7 +29,10 @@
 				          END responsible_school
 				     FROM students s
 				     WHERE
-				          ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL
+				          ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL AND
+				          ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') IS NOT NULL AND
+				          to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN s.entrydate AND s.exitdate AND
+				          s.exitdate > s.entrydate
 				     UNION ALL
 				     SELECT
 				          re.studentid,
@@ -44,14 +48,14 @@
 				          END responsible_school
 				     FROM reenrollments re
 				     WHERE
-				          ps_customfields.getcf('reenrollments',re.id,'va_np_fte') IS NULL
+				          ps_customfields.getcf('reenrollments',re.id,'va_np_fte') IS NULL AND
+				          to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN re.entrydate AND re.exitdate AND
+				          re.exitdate > re.entrydate
 				) enr
 				JOIN students s ON s.id = enr.studentid
 				JOIN schools schl ON schl.school_number = enr.responsible_school
 				WHERE
-					ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') IS NOT NULL AND
-					to_date('~[gpv:snapshot_Date]','MM/DD/YYYY') BETWEEN enr.entrydate AND enr.exitdate AND
-					enr.exitdate > enr.entrydate
+					ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') IS NOT NULL
 			) PIVOT (
 				count(studentid)
 				FOR esl_code IN(
@@ -62,9 +66,9 @@
 			) ORDER BY school_name ASC;
 		]{
 			"school_name":"~(school_name)",
-			"receiving_services":~(receivingservices),
-			"refused_services":~(refusedservices),
-			"formerly_lep":~(formerlylep)
+			"receiving_services":"~(receivingservices)",
+			"refused_services":"~(refusedservices)",
+			"formerly_lep":"~(formerlylep)"
 		}~(comma)[/tlist_sql]
 	],
 	

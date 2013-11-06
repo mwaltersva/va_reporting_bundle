@@ -3,28 +3,29 @@
 		~[tlist_sql;
 			SELECT
 			     school_name,
-			     KA,
-			     KP,
-			     KG,
-			     T1,
-			     g1,
-			     g2,
-			     g3,
-			     g4,
-			     g5,
-			     g6,
-			     g7,
-			     g8,
-			     g9,
-			     g10,
-			     g11,
-			     g12,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"KA\">' || KA || '</a>' KA,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"KP\">' || KP || '</a>' KP,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"KG\">' || KG || '</a>' KG,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"T1\">' || T1 || '</a>' T1,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"1\">' || g1 || '</a>' g1,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"2\">' || g2 || '</a>' g2,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"3\">' || g3 || '</a>' g3,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"4\">' || g4 || '</a>' g4,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"5\">' || g5 || '</a>' g5,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"6\">' || g6 || '</a>' g6,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"7\">' || g7 || '</a>' g7,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"8\">' || g8 || '</a>' g8,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"9\">' || g9 || '</a>' g9,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"10\"' || g10 || '</a>' g10,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"11\"' || g11 || '</a>' g11,
+			     '<a class=\"detail\" data-school=\"' || school_number || '\" data-grade=\"12\"' || g12 || '</a>' g12,
 			     LEAD(CASE WHEN school_name IS NOT NULL THEN chr(44) ELSE NULL END)
 			     OVER(ORDER BY school_name ASC) comma
 			FROM (
 			     SELECT
 			          schl.name school_name,
-			          stu.studentid id,
+			          schl.school_number school_number,
+			          count(stu.studentid) id,
 			          stu.grade_level
 			     FROM (
 			          SELECT
@@ -84,8 +85,9 @@
 			               ) = 1
 			     ) stu
 			     LEFT OUTER JOIN schools schl ON schl.school_number = stu.reporting_school
+			     GROUP BY schl.name, stu.grade_level, schl.school_number
 			) PIVOT (
-			     count(id)
+			     sum(id)
 			     FOR grade_level IN
 			          ('KA' KA,'KP' KP,'KG' KG,'T1' T1,'1' g1,'2' g2,'3' g3,'4' g4,'5' g5,'6' g6,'7' g7,'8' g8,'9' g9,'10' g10,'11' g11,'12' g12)
 			) ORDER BY school_name ASC;

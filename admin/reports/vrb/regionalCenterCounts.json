@@ -3,24 +3,24 @@
 		~[tlist_sql;
 SELECT
      serving_school,
-     "0",
-     "1",
-     "2",
-     "3",
-     "4",
-     "5",
-     "6",
-     "7",
-     "8",
-     "9",
-     "10",
-     "11",
-     "12",
+     '<a class=\"detail\" data-grade=\"0\" data-school=\"' || serving_school || '\">' || "0" || '</a>' "0",
+     '<a class=\"detail\" data-grade=\"1\" data-school=\"' || serving_school || '\">' || "1" || '</a>' "1",
+     '<a class=\"detail\" data-grade=\"2\" data-school=\"' || serving_school || '\">' || "2" || '</a>' "2",
+     '<a class=\"detail\" data-grade=\"3\" data-school=\"' || serving_school || '\">' || "3" || '</a>' "3",
+     '<a class=\"detail\" data-grade=\"4\" data-school=\"' || serving_school || '\">' || "4" || '</a>' "4",
+     '<a class=\"detail\" data-grade=\"5\" data-school=\"' || serving_school || '\">' || "5" || '</a>' "5",
+     '<a class=\"detail\" data-grade=\"6\" data-school=\"' || serving_school || '\">' || "6" || '</a>' "6",
+     '<a class=\"detail\" data-grade=\"7\" data-school=\"' || serving_school || '\">' || "7" || '</a>' "7",
+     '<a class=\"detail\" data-grade=\"8\" data-school=\"' || serving_school || '\">' || "8" || '</a>' "8",
+     '<a class=\"detail\" data-grade=\"9\" data-school=\"' || serving_school || '\">' || "9" || '</a>' "9",
+     '<a class=\"detail\" data-grade=\"10\" data-school=\"' || serving_school || '\">' || "10" || '</a>' "10",
+     '<a class=\"detail\" data-grade=\"11\" data-school=\"' || serving_school || '\">' || "11" || '</a>' "11",
+     '<a class=\"detail\" data-grade=\"12\" data-school=\"' || serving_school || '\">' || "12" || '</a>' "12",
      LEAD(CASE WHEN serving_school IS NOT NULL THEN chr(44) ELSE NULL END)
      OVER(ORDER BY serving_school ASC)
 FROM (
      SELECT
-          s.id studentid,
+          count(s.id) studentid,
           s.grade_level,
           ps_customfields.getstudentscf(s.id, 'va_servingschool') serving_school
      FROM students s
@@ -29,9 +29,10 @@ FROM (
           s.exitdate > s.entrydate AND
           to_char(NVL(ps_customfields.getstudentscf(s.id,'va_servingdistrict'),~[displaypref:districtnumber]),'FM000') || to_char(NVL(ps_customfields.getstudentscf(s.id,'va_servingschool'),s.schoolid),'FM0000') IN
                (~[displaypref:vrb_regional_centers])
+     GROUP BY s.grade_level, ps_customfields.getstudentscf(s.id,'va_servingschool')
      UNION ALL
      SELECT
-          re.studentid studentid,
+          count(re.studentid) studentid,
           re.grade_level,
           ps_customfields.getcf('reenrollments',re.id,'va_servingschool') serving_school
      FROM reenrollments re
@@ -40,25 +41,26 @@ FROM (
           re.exitdate > re.entrydate AND
           to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),~[displaypref:districtnumber]),'FM000') || to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid),'FM0000') IN
                (~[displaypref:vrb_regional_centers])
+     GROUP BY re.grade_level, ps_customfields.getcf('reenrollments',re.id,'va_servingschool')
 ) PIVOT (
-     count(studentid) FOR grade_level IN
+     sum(studentid) FOR grade_level IN
           (0,1,2,3,4,5,6,7,8,9,10,11,12)
 ) ORDER BY serving_school ASC;
 		]{
 			"school_name":"~(serving_school)",
-			"KG":~(0),
-			"G1":~(1),
-			"G2":~(2),
-			"G3":~(3),
-			"G4":~(4),
-			"G5":~(5),
-			"G6":~(6),
-			"G7":~(7),
-			"G8":~(8),
-			"G9":~(9),
-			"G10":~(10),
-			"G11":~(11),
-			"G12":~(12)
+			"KG":"~(0)",
+			"G1":"~(1)",
+			"G2":"~(2)",
+			"G3":"~(3)",
+			"G4":"~(4)",
+			"G5":"~(5)",
+			"G6":"~(6)",
+			"G7":"~(7)",
+			"G8":"~(8)",
+			"G9":"~(9)",
+			"G10":"~(10)",
+			"G11":"~(11)",
+			"G12":"~(12)"
 		}~(comma)[/tlist_sql]
 	],
 	

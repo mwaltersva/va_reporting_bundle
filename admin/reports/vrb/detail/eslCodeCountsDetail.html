@@ -1,0 +1,73 @@
+<table id="detailResults">
+    <thead>
+        <tr>
+            <th>Name</th><th>Respbl. School</th><th>Serv. School</th><th>Enrolled School</th>
+        </tr>
+    </thead>
+    <tbody>
+        ~[tlist_sql;
+                SELECT
+                    s.dcid,
+                    s.lastfirst,
+                    NVL(resp_school,enroll_school) resp_school,
+                    NVL(serving_school, enroll_school) serving_school,
+                    enroll_school
+                FROM (
+                     SELECT
+                          s.id studentid,
+                          s.entrydate,
+                          s.exitdate,
+                          ps_customfields.getstudentscf(s.id,'va_responsibleschool') resp_school,
+                          ps_customfields.getstudentscf(s.id,'va_servingschool') serving_school,
+                          s.schoolid enroll_school,
+                          CASE
+                               WHEN to_char(NVL(ps_customfields.getstudentscf(s.id, 'va_servingdistrict'),~[displaypref:districtnumber]),'FM000') || to_char(ps_customfields.getstudentscf(s.id, 'va_servingschool'),'FM0000') IN
+                                    (~[displaypref:vrb_nm_schools])
+                               THEN
+                                    NVL(ps_customfields.getstudentscf(s.id, 'va_responsibleschool'),s.schoolid)
+                               ELSE
+                                    NVL(ps_customfields.getstudentscf(s.id, 'va_servingschool'),s.schoolid)
+                          END reporting_school
+                     FROM students s
+                     WHERE
+                          ps_customfields.getstudentscf(s.id, 'va_np_fte') IS NULL AND
+                          ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') = ~[gpv:esl_code] AND
+                          to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN s.entrydate AND s.exitdate AND
+                          s.exitdate > s.entrydate
+                     UNION ALL
+                     SELECT
+                          re.studentid,
+                          re.entrydate,
+                          re.exitdate,
+                          ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool') resp_school,
+                          ps_customfields.getcf('reenrollments',re.id,'va_servingschool') serving_school,
+                          re.schoolid enroll_school,
+                          CASE
+                               WHEN to_char(NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingdistrict'),~[displaypref:districtnumber]),'FM000') || to_char(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),'FM0000') IN
+                                    (~[displaypref:vrb_nm_schools])
+                               THEN
+                                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_responsibleschool'),re.schoolid)
+                               ELSE
+                                    NVL(ps_customfields.getcf('reenrollments',re.id,'va_servingschool'),re.schoolid)
+                          END reporting_school
+                     FROM reenrollments re
+                     WHERE
+                          ps_customfields.getcf('reenrollments',re.id,'va_np_fte') IS NULL AND
+                          to_date('~[gpv:snapshot_date]','MM/DD/YYYY') BETWEEN re.entrydate AND re.exitdate AND
+                          re.exitdate > re.entrydate
+                ) enr
+                JOIN students s ON s.id = enr.studentid
+                JOIN schools schl ON schl.school_number = enr.reporting_school
+                WHERE
+                    ps_customfields.getstudentscf(s.id, 'va_lep_serv_cd') IS NOT NULL
+                    AND ~[gpv:reporting_school] = reporting_school
+                    AND ~[gpv:esl_code] = ps_customfields.getstudentscf(s.id,'va_lep_serv_cd');]
+             <tr>
+                <td><a href="/admin/students/home.html?frn=001~(dcid)">~(lastfirst)</a></td>
+                <td>~(resp_school)</td>
+                <td>~(serving_school)</td>
+                <td>~(enroll_school)</td>
+            </tr>
+       [/tlist_sql]        
+    </tbody>
+</table>
