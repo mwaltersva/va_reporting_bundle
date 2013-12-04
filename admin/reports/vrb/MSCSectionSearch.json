@@ -55,7 +55,7 @@
 				1, 'Yes',
 				'No'
 			) flex_criteria_flag,
-			sec.id sectionid,
+			'<a href=\"/admin/sections/edit.html?frn=003' || sec.id || '\">' || sec.id || '</a>' sectionid,
 			sced_subject,
 			sced_course_identifier,
 			sced_course_level,
@@ -131,6 +131,8 @@
 			~[if.~[gpv:course_number]#]AND c.course_number = '~[gpv:course_number]'[/if]
 			~[if.~[gpv:section_number]#]AND sec.section_number = '~[gpv:section_number]'[/if]
 			~[if.~[gpv:teacher_id]#]AND t.id = ~[gpv:teacher_id][/if]
+			~[if.~[gpv:sced_subject]#]AND ps_customfields.getcoursescf(c.id,'va_sced_subject_area') = '~[gpv:sced_subject]'[/if]
+			~[if.~[gpv:sced_course_id]#]AND ps_customfields.getcoursescf(c.id,'va_sced_crs_identifier') = '~[gpv:sced_course_id]'[/if]
 		GROUP BY
 			sec.id,
 			msc.teacher_type,
