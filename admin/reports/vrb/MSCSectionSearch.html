@@ -67,6 +67,24 @@
                         <td><input type="text" id="teacher_id"></td>
                     </tr>
                     <tr class="~[evenoddrow]">
+                        <td class="bold">Teacher Role Code: </td>
+                        <td>
+                            <select name="teacher_role_cd" id="teacher_role_code">
+                                <option value="">Select a teacher role code...</option>
+                                <option value="0">Virtual Course (0)</option>
+                                <option value="1">Teacher of Record (1)</option>
+                                <option value="2">Other Teacher Whole class, Most of the time (2)</option>
+                                <option value="3">Other Teacher Whole Class, some of the time (3)</option>
+                                <option value="4">Other Teacher, Few Students (4)</option>
+                                <option value="5">Long-Term Substitute (5)</option>
+                                <option value="6">Contracted Private Provider (6)</option>
+                                <option value="7">Pupil-Personnel Service Provider (7)</option>
+                                <option value="8">Administrator (8)</option>
+                                <option value="9">Regular Substitute (9)</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr class="~[evenoddrow]">
                         <td class="bold">SCED Subject Area</td>
                         <td><input type="text" id="sced_subject"></td>
                     </tr>
@@ -95,6 +113,7 @@
             course_name: $j('#course_name'),
             section_number: $j('#section_number'),
             teacher_id: $j('#teacher_id'),
+            teacher_role_code: $j('#teacher_role_code'),
             sced_subject: $j('#sced_subject'),
             sced_course_id: $j('#sced_course_id'),
             search: $j('#search_button')
@@ -105,7 +124,7 @@
         var results_table = $j('#results_table');
         var anOpen = [];
         
-        function DoSearch(section_id, course_number, course_name, section_number, teacher_id,sced_subject,sced_course_id) {
+        function DoSearch(section_id, course_number, course_name, section_number, teacher_id,sced_subject,sced_course_id,teacher_role_code) {
             try {
                 results_table.fnDestroy();
                 results_loading.empty();
@@ -125,7 +144,8 @@
                 'section_number':section_number,
                 'sced_subject':sced_subject,
                 'sced_course_id':sced_course_id,
-                'teacher_id':teacher_id
+                'teacher_id':teacher_id,
+                'teacher_role_code':teacher_role_code
             }).done(function(data) {
                 results_loading.empty();
                 results_table.dataTable(data);
@@ -201,8 +221,6 @@
             });
         }
         
-        
-        
         $j(document).ready(function() {
             
             FormInputs.course_number.autocomplete({
@@ -239,7 +257,8 @@
                 FormInputs.section_number.val(),
                 FormInputs.teacher_id.val(),
                 FormInputs.sced_subject.val(),
-                FormInputs.sced_course_id.val()
+                FormInputs.sced_course_id.val(),
+                FormInputs.teacher_role_code.val()
             );
         });
         

@@ -7,7 +7,7 @@
     <style type="text/css">
         td.title {
             width: 25%;
-            minwidth: 150px;
+            min-width: 150px;
         }
     </style>
     <title>Virginia Reporting Bundle Config</title>
@@ -20,6 +20,9 @@
     <div id="Config" class="box-round">
         <h2>General Options</h2>
         <table>
+            <tr class="headerrow">
+                <th colspan="2">SRC Report Configuration</th>
+            </tr>
             <tr class="~[evenoddrow]">
                 <td class="title"><label for="nm_schools">Non-Membership Schools</label></td>
                 <td>
@@ -32,17 +35,39 @@
                     <input type="text" name="[pref]vrb_regional_centers" id="regional_centers" value="" size="50">
                 </td>
             </tr>
+            <tr class="headerrow">
+                <th colspan="2">Other Configuartion</th>
+            </tr>
+            <tr class="~[evenoddrow]">
+                <td class="bold"><label for="vrb_final_grade">End of Course Store Code</label></td>
+                <td><input type="text" name="[pref]vrb_eoc_store_code" id="vrb_final_grade" value="" size="2"></td>
+            </tr>
+            <tr class="~[evenoddrow]">
+                <td><label for="vrb_lvc_credit_types">Credit Types eligible for locally verified credits.</label></td>
+                <td>
+                    <input type="text" id="vrb_lvc_credit_types" value="" size="15">
+                    <input type="hidden" name="[pref]vrb_lvc_credit_types" id="vrb_lvc_credit_types_hidden" value="">
+                </td>                
+            </tr>
         </table>
         ~[if.modaccess]<input type="hidden" name="ac" value="prim"><div class="button-row">~[submitbutton]</div>[/if]
         <div class="feedback-note">
             <ul>
                 <li><strong>Non-Membership Schools - </strong>This should be a comma delimitted list of non-membership schools your division uses.<br>At the very least you should include 6008000. There should be no trailing comma. E.g., 6008000,4220422,0019998,...</li>
                 <li><strong>Regional-Centers - </strong>A comma delimitted list of regional centers used by your division. Same format as "Non-Membership Schools"</li>
+                <li><strong>EOC Store Code - </strong>The store code used for end of course grades. Should only contain one <strong>uppercase</strong> store code</li>
+                <li><strong>Credit Types - </strong>A comma delimitted list of credit types for social studies and science (courses eligible for locally verifiable credits)</li>
             </ul>
         </div>
     </div>
 </form>
 <script type="text/javascript">
+
+    nm_schools = $j('#nm_schools');
+    regional_centers = $j('#regional_centers');
+    final_grade = $j('#vrb_final_grade');
+    lvc_credit_types = $j('#vrb_lvc_credit_types');
+    lvc_credit_types_hidden = $j('#vrb_lvc_credit_types_hidden');
 
     function check_trailing_comma(s) {
         if (s[s.length-1] === ',') {
@@ -52,13 +77,19 @@
         }
     }
     
+    $j(function() {
+        if (lvc_credit_types_hidden.val() != null) {
+            var a = new Array;
+            a.push(lvc_credit_types_hidden.val().replace(/\'/g, "").split(","));
+            lvc_credit_types.val(a.join(","));
+        }
+    });
+    
     $j('form').submit(function() {
         submitOnce_shouldShow = 0;
         var errors = 0;
         var error_message = "";
-        
-        nm_schools = $j('#nm_schools');
-        regional_centers = $j('#regional_centers');
+        var a = new Array;
         
         if (check_trailing_comma(nm_schools.val()) === true) {
             errors++;
@@ -70,10 +101,30 @@
             error_message +='Regional centers contains a trailing comma\n';
         }
         
+        if (check_trailing_comma(final_grade.val()) === true) {
+            errors++;
+            error_message +='Final Grade entry contains a trailing comma\n';
+        }
+        
+        if (check_trailing_comma(lvc_credit_types.val()) === true) {
+            errors++;
+            error_message +='LVC Credit types entry contains a trailing comma\n';
+        }
+        
         if (errors > 0) {
             alert(error_message);
             return false;
         } else {
+            a = lvc_credit_types.val().split(',');
+            var s = new String;
+            $j.each(a, function(index, value) {
+                if (a.length-1 === index) {
+                    s += "'"+value+"'";
+                } else {
+                    s += "'"+value+"',";
+                }
+            });
+            lvc_credit_types_hidden.val(s);
             loadingDialog();
             return true;
         }

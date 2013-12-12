@@ -1,0 +1,128 @@
+<html>
+<head>
+
+<!-- Required style sheets: screen.css, and print.css --> 
+    <link href="/images/css/screen.css" rel="stylesheet" media="screen"> 
+    <link href="/images/css/print.css" rel="stylesheet" media="print">
+    <link href="/scripts/vrb/DataTables/media/css/jquery.dataTables.css" rel="stylesheet">
+    <link href="/scripts/vrb/DataTables/extras/TableTools/media/css/TableTools_JUI.css" rel="stylesheet">
+    <link href="/images/css/vrb/report.css" rel="stylesheet">
+    
+    <title>Students Eligible for LVCs</title>
+    ~[wc:commonscripts]
+    <script src="/scripts/vrb/DataTables/media/js/jquery.dataTables.min.js"></script>
+    <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/TableTools.min.js"></script>
+    <script src="/scripts/vrb/DataTables/extras/TableTools/media/js/ZeroClipboard.js"></script>
+</head>
+<body>
+    ~[wc:admin_header_css]<!-- breadcrumb start --><a href="/admin/home.html" target="_top">~[text:psx.html.admin_reports.runreports.start_page]</a> &gt; <a href="/admin/reports/home.html">~[text:psx.html.admin_reports.runreports.reports]</a> &gt; <a href="/admin/reports/vrb/home.html">VRB</a> &gt; LVC Finder <!-- breadcrumb end -->~[wc:admin_navigation_css]
+    <h1>Students eligible for LVCs</h1>
+    <div class="hide" id="help">
+        <p>
+            Attempts to find students who may be eligible for LVCs. You <strong>must</strong> configure the end of course store code AND LVC credit types on the
+            <a href="config.html">VRB configuration page</a>. This report assumes that:
+        </p>
+        <ul>
+            <li>Your courses have a potential credit greater than zero.</li>
+            <li>The credit earned must be equal to the potential credit to consider the course "Passed"</li>
+            <li>No graduation credit is earned for courses taken in grade levels less than 7.</li>
+            <li>You have associated the current SOL test on the edit course page.</li>
+            <li>You have selected previously applicable tests on the edit course page using the alternate SOL list</li>
+        </ul>
+    </div>
+    <div id="search_container" class="box-round">
+        <h2 class="toggle expanded">Search Criteria</h2>
+        <div>
+        <a class="dialogDivM" title="Help" href="#help">Help</a>
+        <table id="search_table">
+            <tr class="~[evenoddrow]">
+                <td class="bold">Include only Grade Levels:&nbsp;</td>
+                <td>
+                    <select id="grade-levels" multiple="true">
+                        <option value="7">7th Grade</option>
+                        <option value="8">8th Grade</option>
+                        <option value="9">9th Grade</option>
+                        <option value="10">10th Grade</option>
+                        <option value="11">11th Grade</option>
+                        <option value="12">12th Grade</option>
+                    </select>
+                </td>
+            </tr>
+            <tr class="~[evenoddrow]">
+                <td class="bold">Limit to the current selection of students?</td>
+                <td><input type="checkbox" id="current-selection"></td>
+            </tr>
+        </table>
+        <div class="button-row"><button id="search_button">Search</button></div>
+        </div>
+    </div>
+    <div id="results_container" class="box-round">
+        <div id="results_loading" style="text-align: center;"></div>
+        <table id="results_table">
+            <thead>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+    <div id="detail_container" class="hidden"></div>
+    <script type="text/javascript">
+        
+        var results_container = $j('#results_container');
+        var results_loading = $j('#results_loading');
+        var results_table = $j('#results_table');
+        
+        var FormInputs = {
+            grade_levels: $j('#grade-levels'),
+            current_selection: $j('#current-selection'),
+            search_button: $j('#search_button')
+        };
+        
+        function DoSearch() {
+            try {
+                results_table.fnDestroy();
+                results_loading.empty();
+                $j("#results_table tbody").empty();
+                $j("#results_table thead").empty();
+            } 
+            catch(err) {
+                console.log("WARN - No table, " + err);
+            }
+            psToggleAll('collapse', '#content-main');
+            results_loading.append('<img src="/images/vrb/ajaxLoader.gif">');
+            var grade_level_string = function() {
+                var a = new Array;
+                $j("#grade-levels option:selected").each(function() {
+                    a.push($j(this).val());
+                });
+                if (a.length > 0) {
+                    return a.join(',');
+                } else {
+                    return null;
+                }
+            };
+            $j.getJSON("LVCFinder.json",{
+                grade_levels: grade_level_string,
+                current_selection: FormInputs.current_selection.is(":checked")
+            }).done(function(data) {
+                results_loading.empty();
+                results_table.dataTable(data);
+            }).fail(function(error) {
+                console.log("error " + error);
+                results_loading.empty();
+                results_loading.append('An error has occured.');
+            });
+        }
+        
+        $j(function() {
+            $j('#grade-levels option').each(function() {
+                $j(this).attr("selected","true");
+            });
+        });
+        
+        $j(FormInputs.search_button).click(function() {
+            DoSearch();
+        });
+    </script>
+</body>
+</html>

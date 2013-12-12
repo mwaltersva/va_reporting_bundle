@@ -3,8 +3,8 @@
 	~[tlist_sql;
 		SELECT
 			msc.teacher_type,
-			t.lastfirst,
-			c.course_number,
+			'<a href=\"/admin/faculty/home.html?frn=005' || t.dcid || '\">' || t.lastfirst || '</a>' teacher_name,
+			'<a href=\"/admin/courses/edit.html?cn=' || c.course_number || '\">' || c.course_number || '</a>' course_number,
 			sec.section_number,
 			c.course_name,
 			decode(msc.teacher_role_code,
@@ -90,7 +90,17 @@
 			WHERE
 				terms.yearid = ~(curyearid)
 				~[if.is.a.school]AND sec.schoolid = ~(curschoolid)[/if]
-				AND cc.dateleft-cc.dateenrolled >= 20
+				AND cc.dateleft - cc.dateenrolled >= 20
+				AND ps_customfields.getteacherscf(t.id, 'va_exclude_from_msc') IS NULL
+				AND ps_customfields.getsectionscf(sec.id, 'va_exclude_from_msc') IS NULL
+				AND ps_customfields.getcoursescf(c.id, 'va_exclude_from_msc') IS NULL
+				~[if.~[gpv:section_id]#]AND sec.id = ~[gpv:section_id][/if]
+				~[if.~[gpv:course_number]#]AND c.course_number = '~[gpv:course_number]'[/if]
+				~[if.~[gpv:section_number]#]AND sec.section_number = '~[gpv:section_number]'[/if]
+				~[if.~[gpv:teacher_id]#]AND t.id = ~[gpv:teacher_id][/if]
+				~[if.~[gpv:teacher_role_cd]#]AND ps_customfields.getsectionscf(sec.id,'va_teacher_role_cd') = ~[gpv:teacher_role_code][/if]
+				~[if.~[gpv:sced_subject]#]AND ps_customfields.getcoursescf(c.id,'va_sced_subject_area') = '~[gpv:sced_subject]'[/if]
+				~[if.~[gpv:sced_course_id]#]AND ps_customfields.getcoursescf(c.id,'va_sced_crs_identifier') = '~[gpv:sced_course_id]'[/if]
 			UNION ALL
 			SELECT
 				'addtl' teacher_type,
@@ -109,13 +119,25 @@
 				ps_customfields.getcoursescf(c.id, 'va_course_code') va_course_code
 			FROM sections sec
 			JOIN virtualtablesdata2 vtd ON vtd.user_defined_text = sec.id
+			JOIN cc ON cc.sectionid = sec.id
 			JOIN teachers t ON t.id = vtd.foreignkey
-			JOIN students s ON ',' || ps_customfields.getcf('va_msc', unique_id, 'va_kidstaught') LIKE '%,' || s.id || ',%'
 			JOIN terms ON terms.id = sec.termid AND terms.schoolid = sec.schoolid
 			JOIN courses c ON c.course_number = sec.course_number
+			LEFT OUTER JOIN students s ON  ',' || ps_customfields.getcf('va_msc', unique_id, 'va_kidstaught') LIKE '%,' || s.id || ',%'
 			WHERE
 				terms.yearid = ~(curyearid)
 				~[if.is.a.school]AND sec.schoolid = ~(curschoolid)[/if]
+				AND cc.dateleft - cc.dateenrolled >= 20
+				AND ps_customfields.getteacherscf(t.id, 'va_exclude_from_msc') IS NULL
+				AND ps_customfields.getsectionscf(sec.id, 'va_exclude_from_msc') IS NULL
+				AND ps_customfields.getcoursescf(c.id, 'va_exclude_from_msc') IS NULL
+				~[if.~[gpv:section_id]#]AND sec.id = ~[gpv:section_id][/if]
+				~[if.~[gpv:course_number]#]AND c.course_number = '~[gpv:course_number]'[/if]
+				~[if.~[gpv:section_number]#]AND sec.section_number = '~[gpv:section_number]'[/if]
+				~[if.~[gpv:teacher_id]#]AND t.id = ~[gpv:teacher_id][/if]
+				~[if.~[gpv:sced_subject]#]AND ps_customfields.getcoursescf(c.id,'va_sced_subject_area') = '~[gpv:sced_subject]'[/if]
+				~[if.~[gpv:sced_course_id]#]AND ps_customfields.getcoursescf(c.id,'va_sced_crs_identifier') = '~[gpv:sced_course_id]'[/if]
+				~[if.~[gpv:teacher_role_cd]#]AND ps_customfields.getcf('va_msc',unique_id,'va_teacher_role_cd') = ~[gpv:teacher_role_code][/if]
 		) msc
 		JOIN teachers t ON t.id = msc.teacherid
 		JOIN students s ON s.id = msc.studentid
@@ -123,19 +145,14 @@
 		JOIN courses c ON c.course_number = sec.course_number
 		JOIN terms ON terms.id = sec.termid AND terms.schoolid = sec.schoolid
 		WHERE
-		terms.yearid = ~(curyearid)
+			terms.yearid = ~(curyearid)
 			AND ps_customfields.getteacherscf(t.id, 'va_exclude_from_msc') IS NULL
 			AND ps_customfields.getsectionscf(sec.id, 'va_exclude_from_msc') IS NULL
 			AND ps_customfields.getcoursescf(c.id, 'va_exclude_from_msc') IS NULL
-			~[if.~[gpv:section_id]#]AND sec.id = ~[gpv:section_id][/if]
-			~[if.~[gpv:course_number]#]AND c.course_number = '~[gpv:course_number]'[/if]
-			~[if.~[gpv:section_number]#]AND sec.section_number = '~[gpv:section_number]'[/if]
-			~[if.~[gpv:teacher_id]#]AND t.id = ~[gpv:teacher_id][/if]
-			~[if.~[gpv:sced_subject]#]AND ps_customfields.getcoursescf(c.id,'va_sced_subject_area') = '~[gpv:sced_subject]'[/if]
-			~[if.~[gpv:sced_course_id]#]AND ps_customfields.getcoursescf(c.id,'va_sced_crs_identifier') = '~[gpv:sced_course_id]'[/if]
 		GROUP BY
 			sec.id,
 			msc.teacher_type,
+			t.dcid,
 			t.lastfirst,
 			c.course_number,
 			sec.section_number,

@@ -1,0 +1,70 @@
+{
+	"aaData": [
+		~[tlist_sql;
+			SELECT
+			     s.student_number,
+			     s.lastfirst last_first,
+			     gr.name req_set_name,
+			     c.course_number,
+			     t.name test_name,
+			     MAX(sts.numscore) test_score,
+			     lead(CASE WHEN s.student_number IS NOT NULL THEN chr(44) END)
+			     OVER(ORDER BY s.lastfirst ASC) comma
+			FROM students s
+			JOIN cc ON cc.studentid = s.id
+			JOIN courses c ON c.course_number = cc.course_number
+			JOIN storedgrades sg ON sg.studentid = s.id AND sg.course_number = c.course_number
+			JOIN test t ON t.id = ps_customfields.getcoursescf(c.id, 'va_sol_test')
+			               OR ',' || ps_customfields.getcoursescf(c.id, 'va_sol_testlist') LIKE '%,' || t.id || ',%'
+			               OR t.id = ps_customfields.getcoursescf(c.id, 'va_sol_test_alt')
+			               OR ',' || ps_customfields.getcoursescf(c.id, 'va_sol_test_altlist') LIKE '%,' || t.id || ',%'
+			JOIN studenttest st ON st.studentid = s.id AND st.testid = t.id
+			JOIN testscore ts ON ts.testid = t.id
+			JOIN studenttestscore sts ON sts.studentid = s.id AND sts.studenttestid = st.id AND sts.testscoreid = ts.id
+			JOIN gradreqsets gr ON gr.gradreqsetid = s.gradreqsetid
+			~[if.~[gpv:current_selection]=true]JOIN ~[temp.table.current.selection:students] stusel ON stusel.dcid = s.dcid[/if]
+			WHERE
+			     upper(sg.storecode) = upper('~[displaypref:vrb_eoc_store_code]')
+			     AND sg.potentialcrhrs > 0
+			     AND sg.earnedcrhrs = sg.potentialcrhrs
+			     AND lower(ts.name) = 'passed'
+			     AND s.enroll_status = 0
+			     AND s.grade_level >= 7
+			     AND sg.grade_level >= 7
+			     ~[if.~[gpv:grade_levels]#]AND s.grade_level IN (~[gpv:grade_levels])[/if]
+			     AND c.credittype IN (~[displaypref:vrb_lvc_credit_types])
+			GROUP BY
+			     s.student_number,
+			     s.lastfirst,
+			     c.course_number,
+			     t.name,
+			     gr.name
+			HAVING
+			     max(sts.numscore) BETWEEN 375 AND 399
+			ORDER BY s.lastfirst ASC;
+		]{
+			"student_number":~(student_number),
+			"last_first":"~(last_first)",
+			"diploma_goal":"~(req_set_name)",
+			"course_number":"~(course_number)",
+			"test_name":"~(test_name)",
+			"test_score":"~(test_score)"
+		}~(comma)[/tlist_sql]
+	],
+	
+	"aoColumns": [
+		{"mDataProp":"student_number","sTitle":"Student Number"},
+		{"mDataProp":"last_first","sTitle":"Last, First"},
+		{"mDataProp":"diploma_goal","sTitle":"Grad Req. Set"},
+		{"mDataProp":"course_number","sTitle":"Course Number"},
+		{"mDataProp":"test_name","sTitle":"Test Name"},
+		{"mDataProp":"test_score","sTitle":"Test Score"}
+	],
+    "sDom": "T<\"H\"fr>t<\"F\"ip>",
+    "oTableTools": {
+        "sSwfPath": "/scripts/vrb/DataTables/extras/TableTools/media/swf/copy_csv_xls_pdf.swf"
+    },
+    "bJQueryUI": true,
+    "bPaginate": false,
+	"bFilter": false
+}
